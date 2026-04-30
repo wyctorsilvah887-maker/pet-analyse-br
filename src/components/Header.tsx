@@ -1,15 +1,17 @@
+
 'use client';
 
 import { useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { PawPrint, LogOut, User as UserIcon, Loader2, LogIn } from 'lucide-react';
+import { PawPrint, LogOut, User as UserIcon, Loader2, LogIn, Sparkles, Crown, Shield } from 'lucide-react';
 import { useAuth, useUser, useFirestore, useDoc } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { doc } from 'firebase/firestore';
+import { Badge } from '@/components/ui/badge';
 
 export default function Header() {
   const auth = useAuth();
@@ -36,6 +38,15 @@ export default function Header() {
   const photoURL = profile?.photoURL || user?.photoURL || null;
   const displayName = profile?.displayName || user?.displayName || 'Usuário';
   const email = profile?.email || user?.email;
+  const userPlan = profile?.plan || 'free';
+
+  const planInfo = useMemo(() => {
+    switch (userPlan) {
+      case 'pro': return { label: 'PRO', icon: <Crown className="h-3 w-3" />, color: 'bg-amber-500/10 text-amber-500 border-amber-500/20' };
+      case 'premium': return { label: 'PREMIUM', icon: <Sparkles className="h-3 w-3" />, color: 'bg-primary/10 text-primary border-primary/20' };
+      default: return { label: 'FREE', icon: <Shield className="h-3 w-3" />, color: 'bg-muted text-muted-foreground border-transparent' };
+    }
+  }, [userPlan]);
 
   if (pathname === '/login') return null;
 
@@ -49,7 +60,14 @@ export default function Header() {
           </span>
         </Link>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          {user && !profileLoading && (
+            <Badge variant="outline" className={`hidden sm:flex items-center gap-1.5 text-[9px] font-bold tracking-widest py-1 ${planInfo.color}`}>
+              {planInfo.icon}
+              {planInfo.label}
+            </Badge>
+          )}
+
           {authLoading ? (
             <div className="h-8 w-8 rounded-full bg-white/5 animate-pulse flex items-center justify-center">
               <Loader2 className="h-3 w-3 animate-spin text-primary/40" />
@@ -81,10 +99,17 @@ export default function Header() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 bg-card border-white/10 p-1 shadow-2xl rounded-xl">
-                <div className="flex flex-col space-y-1 p-3 mb-1 border-b border-white/5">
+                <div className="flex flex-col space-y-1 p-3 mb-1">
                   <p className="text-xs font-bold leading-none text-foreground truncate">{displayName}</p>
                   <p className="text-[10px] leading-none text-muted-foreground truncate mt-1">{email}</p>
                 </div>
+                <div className="p-2 sm:hidden">
+                  <Badge variant="outline" className={`w-full flex items-center justify-center gap-1.5 text-[8px] font-bold tracking-widest py-1.5 ${planInfo.color}`}>
+                    {planInfo.icon}
+                    PLANO {planInfo.label}
+                  </Badge>
+                </div>
+                <DropdownMenuSeparator className="bg-white/5" />
                 <DropdownMenuItem 
                   onClick={handleLogout} 
                   className="text-destructive focus:text-destructive cursor-pointer hover:bg-destructive/10 rounded-lg transition-colors p-2.5"

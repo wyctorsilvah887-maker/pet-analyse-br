@@ -4,7 +4,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription } from '@/components/ui/card';
-import { ShieldCheck, Heart, AlertCircle, MessageCircle, Sparkles, ArrowRight, Loader2 } from 'lucide-react';
+import { ShieldCheck, Heart, AlertCircle, MessageCircle, Sparkles, ArrowRight, Loader2, Crown } from 'lucide-react';
 import Header from '@/components/Header';
 import Image from 'next/image';
 import { useUser, useCollection, useFirestore, useDoc } from '@/firebase';
@@ -20,6 +20,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 export default function Home() {
   const { user } = useUser();
@@ -58,16 +59,36 @@ export default function Home() {
     }
   };
 
+  const userPlan = profile?.plan || 'free';
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Header />
       
       <main className="container mx-auto px-4 py-8 md:py-12 max-w-6xl">
         <section className="mb-8 md:mb-12 text-center space-y-3 md:space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[9px] md:text-[10px] font-bold uppercase tracking-widest animate-pulse mb-1">
-            <Sparkles className="h-3 w-3 fill-current" />
-            IA Preventiva de Saúde
+          <div className="flex flex-col items-center gap-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[9px] md:text-[10px] font-bold uppercase tracking-widest animate-pulse mb-1">
+              <Sparkles className="h-3 w-3 fill-current" />
+              IA Preventiva de Saúde
+            </div>
+            {user && !profileLoading && (
+              <div className="animate-in fade-in zoom-in duration-500">
+                {userPlan === 'pro' ? (
+                  <Badge className="bg-amber-500 text-white border-none px-4 py-1.5 rounded-full flex items-center gap-2 shadow-[0_0_20px_rgba(245,158,11,0.3)]">
+                    <Crown className="h-3 w-3 fill-current" />
+                    <span className="text-[10px] tracking-[0.2em] font-black uppercase">MEMBRO PRO</span>
+                  </Badge>
+                ) : userPlan === 'premium' ? (
+                  <Badge className="bg-primary text-primary-foreground border-none px-4 py-1.5 rounded-full flex items-center gap-2 shadow-[0_0_20px_rgba(var(--primary),0.3)]">
+                    <Sparkles className="h-3 w-3 fill-current" />
+                    <span className="text-[10px] tracking-[0.2em] font-black uppercase">MEMBRO PREMIUM</span>
+                  </Badge>
+                ) : null}
+              </div>
+            )}
           </div>
+          
           <h1 className="font-headline text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-foreground px-2 leading-[1.2]">
             Cuidando do seu <span className="text-primary italic">pet</span> com IA
           </h1>
