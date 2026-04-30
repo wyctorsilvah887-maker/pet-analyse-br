@@ -112,7 +112,7 @@ export default function PetChatPage() {
   const [isSending, setIsSending] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [pendingImage, setPendingImage] = useState<string | null>(null);
-  const [messageLimit, setMessageLimit] = useState(10);
+  const [messageLimit, setMessageLimit] = useState(15);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [shouldMaintainScroll, setShouldMaintainScroll] = useState(false);
 
@@ -206,7 +206,7 @@ export default function PetChatPage() {
     lastScrollHeight.current = scrollRef.current.scrollHeight;
     setIsLoadingMore(true);
     setShouldMaintainScroll(true);
-    setMessageLimit(prev => prev + 10);
+    setMessageLimit(prev => prev + 15);
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -236,7 +236,7 @@ export default function PetChatPage() {
         description: "As mensagens visíveis foram limpas.",
       });
       
-      setMessageLimit(10);
+      setMessageLimit(15);
     } catch (error) {
       console.error('Erro ao limpar chat:', error);
     } finally {
@@ -347,40 +347,40 @@ export default function PetChatPage() {
       <Header />
 
       <main className="flex-1 flex flex-col w-full max-w-5xl mx-auto overflow-hidden relative">
-        <div className="flex items-center justify-between p-3 md:p-4 bg-black/40 backdrop-blur-md border-b border-white/5 z-20">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between p-2 md:p-4 bg-black/40 backdrop-blur-md border-b border-white/5 z-20">
+          <div className="flex items-center gap-2 md:gap-3">
             <Button variant="ghost" size="icon" onClick={() => router.push('/')} className="h-8 w-8 text-white/70 hover:text-white shrink-0">
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="flex items-center gap-2 md:gap-3 min-w-0">
-              <Avatar className="h-10 w-10 md:h-12 md:w-12 border-2 border-primary/20 ring-2 ring-black shrink-0">
+              <Avatar className="h-9 w-9 md:h-12 md:w-12 border-2 border-primary/20 ring-2 ring-black shrink-0">
                 <AvatarImage src={pet.photoURL} alt={pet.name} className="object-cover" />
                 <AvatarFallback className="bg-muted">
                   <PawPrint className="h-5 w-5 md:h-6 md:w-6 text-primary" />
                 </AvatarFallback>
               </Avatar>
               <div className="flex flex-col min-w-0">
-                <h1 className="font-bold text-sm md:text-lg text-primary leading-tight truncate">{pet.name.toLowerCase()}</h1>
-                <p className="text-[9px] md:text-xs text-white/40 uppercase font-bold tracking-[0.2em] truncate">
+                <h1 className="font-bold text-xs md:text-lg text-primary leading-tight truncate">{pet.name.toLowerCase()}</h1>
+                <p className="text-[8px] md:text-xs text-white/40 uppercase font-bold tracking-[0.2em] truncate">
                   {pet.species} • {pet.breed || 'SRD'}
                 </p>
               </div>
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 md:gap-2">
              <Badge 
               variant="secondary" 
               className={cn(
-                "bg-primary/10 text-primary border-none text-[9px] md:text-[10px] font-bold py-1 md:py-1.5 px-2 md:px-3 flex items-center gap-1.5 transition-all shrink-0",
+                "bg-primary/10 text-primary border-none text-[8px] md:text-[10px] font-bold py-1 md:py-1.5 px-2 md:px-3 flex items-center gap-1 md:gap-1.5 transition-all shrink-0",
                 isLimitReached && "bg-destructive/10 text-destructive",
                 isPro && "bg-amber-500/10 text-amber-500"
               )}
              >
-                <Sparkles className="h-3 w-3 md:h-3.5 md:w-3.5 fill-current" />
+                <Sparkles className="h-2.5 w-2.5 md:h-3.5 md:w-3.5 fill-current" />
                 <span className="uppercase tracking-wider">
                   {isPro ? (
-                    <span className="flex items-center gap-1">ILIMITADO <InfinityIcon className="h-3 w-3" /></span>
+                    <span className="flex items-center gap-1">PRO <InfinityIcon className="h-2.5 w-2.5" /></span>
                   ) : (
                     `${messagesRemaining}/${dailyLimit}`
                   )}
@@ -421,15 +421,15 @@ export default function PetChatPage() {
 
         <div 
           ref={scrollRef}
-          className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 md:space-y-10 bg-black no-scrollbar overscroll-contain"
+          className="flex-1 overflow-y-auto p-2 md:p-8 space-y-4 md:space-y-10 bg-black no-scrollbar overscroll-contain"
         >
           {messages.length >= messageLimit && (
-            <div className="flex justify-center pb-4">
+            <div className="flex justify-center pb-2">
               <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={handleLoadMore}
-                className="text-[9px] md:text-[10px] uppercase font-bold tracking-[0.2em] text-white/20 hover:text-primary h-8 gap-2 bg-transparent border border-white/5 px-4 rounded-full"
+                className="text-[8px] md:text-[10px] uppercase font-bold tracking-[0.2em] text-white/20 hover:text-primary h-7 md:h-8 gap-1.5 bg-transparent border border-white/5 px-3 md:px-4 rounded-full"
                 disabled={isSending || isLoadingMore}
               >
                 {isLoadingMore ? <Loader2 className="h-3 w-3 animate-spin" /> : <History className="h-3 w-3" />}
@@ -441,9 +441,9 @@ export default function PetChatPage() {
           {messages.length === 0 && !isSending && (
             <div className="flex flex-col items-center justify-center h-full py-10 md:py-20 space-y-4 md:space-y-6 text-center opacity-40">
               <div className="bg-primary/5 p-4 md:p-6 rounded-full ring-1 ring-primary/10">
-                <Bot className="h-8 w-8 md:h-10 md:w-10 text-primary" />
+                <Bot className="h-7 w-7 md:h-10 md:w-10 text-primary" />
               </div>
-              <p className="text-xs md:text-sm font-medium text-white/60 max-w-[240px] md:max-w-[280px] leading-relaxed italic">
+              <p className="text-[10px] md:text-sm font-medium text-white/60 max-w-[200px] md:max-w-[280px] leading-relaxed italic">
                 Olá! Sou o Vet IA da WS Studios. Como posso ajudar o <strong>{pet.name}</strong> hoje?
               </p>
             </div>
@@ -453,27 +453,27 @@ export default function PetChatPage() {
             <div
               key={msg.id || idx}
               className={cn(
-                "flex items-start gap-3 md:gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300",
+                "flex items-start gap-2 md:gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300",
                 msg.role === 'user' ? "flex-row-reverse" : "flex-row"
               )}
             >
               <div className={cn(
-                "flex-shrink-0 h-8 w-8 md:h-9 md:w-9 rounded-full flex items-center justify-center border transition-all",
+                "flex-shrink-0 h-7 w-7 md:h-9 md:w-9 rounded-full flex items-center justify-center border transition-all",
                 msg.role === 'user' 
                   ? "bg-primary border-primary/20 text-primary-foreground shadow-[0_0_15px_rgba(var(--primary),0.2)]" 
                   : "bg-black border-white/10 text-primary"
               )}>
-                {msg.role === 'user' ? <UserIcon className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
+                {msg.role === 'user' ? <UserIcon className="h-3.5 w-3.5 md:h-4 md:w-4" /> : <Bot className="h-3.5 w-3.5 md:h-4 md:w-4" />}
               </div>
               
               <div className={cn(
-                "relative max-w-[85%] md:max-w-[75%] p-3 md:p-6 rounded-[1.5rem] md:rounded-[2rem] text-sm md:text-base shadow-lg leading-relaxed space-y-3",
+                "relative max-w-[85%] md:max-w-[75%] p-3 md:p-6 rounded-[1.2rem] md:rounded-[2rem] text-xs md:text-base shadow-lg leading-relaxed space-y-2 md:space-y-3",
                 msg.role === 'user' 
                   ? "bg-primary text-primary-foreground rounded-tr-none" 
                   : "bg-white/[0.03] border border-white/10 text-white/80 rounded-tl-none"
               )}>
                 {msg.photoURL && (
-                  <div className="relative aspect-video w-full max-w-[280px] md:max-w-[320px] rounded-xl overflow-hidden border border-white/10 mb-2">
+                  <div className="relative aspect-video w-full max-w-[240px] md:max-w-[320px] rounded-lg overflow-hidden border border-white/10 mb-1.5">
                     <Image 
                       src={msg.photoURL} 
                       alt="Anexo" 
@@ -488,15 +488,15 @@ export default function PetChatPage() {
           ))}
           
           {isSending && (
-            <div className="flex items-start gap-3 md:gap-4 animate-in fade-in">
-              <div className="bg-black border border-white/10 h-8 w-8 md:h-9 md:w-9 rounded-full flex items-center justify-center">
-                <Bot className="h-4 w-4 text-primary" />
+            <div className="flex items-start gap-2 md:gap-4 animate-in fade-in">
+              <div className="bg-black border border-white/10 h-7 w-7 md:h-9 md:w-9 rounded-full flex items-center justify-center">
+                <Bot className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary" />
               </div>
-              <div className="bg-white/[0.03] border border-white/10 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] rounded-tl-none">
+              <div className="bg-white/[0.03] border border-white/10 p-2.5 md:p-5 rounded-[1.2rem] md:rounded-[2rem] rounded-tl-none">
                 <div className="flex gap-1">
-                  <span className="h-1.5 w-1.5 bg-primary rounded-full animate-bounce"></span>
-                  <span className="h-1.5 w-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.2s]"></span>
-                  <span className="h-1.5 w-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.4s]"></span>
+                  <span className="h-1 w-1 md:h-1.5 md:w-1.5 bg-primary rounded-full animate-bounce"></span>
+                  <span className="h-1 w-1 md:h-1.5 md:w-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.2s]"></span>
+                  <span className="h-1 w-1 md:h-1.5 md:w-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.4s]"></span>
                 </div>
               </div>
             </div>
@@ -504,22 +504,22 @@ export default function PetChatPage() {
         </div>
 
         {pendingImage && (
-          <div className="px-4 py-3 bg-black/90 backdrop-blur-lg border-t border-white/5 flex items-center gap-4 animate-in slide-in-from-bottom-4">
-            <div className="relative h-16 w-16 md:h-20 md:w-20 rounded-xl overflow-hidden border-2 border-primary/30 shadow-2xl shrink-0">
+          <div className="px-3 py-2 bg-black/90 backdrop-blur-lg border-t border-white/5 flex items-center gap-3 animate-in slide-in-from-bottom-4">
+            <div className="relative h-12 w-12 md:h-20 md:w-20 rounded-lg overflow-hidden border-2 border-primary/30 shadow-2xl shrink-0">
               <Image src={pendingImage} alt="Preview" fill className="object-cover" />
               <button 
                 onClick={() => setPendingImage(null)}
-                className="absolute top-1 right-1 bg-destructive text-white p-1 rounded-full shadow-lg hover:scale-110 transition-transform"
+                className="absolute top-0.5 right-0.5 bg-destructive text-white p-0.5 rounded-full shadow-lg hover:scale-110 transition-transform"
               >
-                <X className="h-3 w-3" />
+                <X className="h-2.5 w-2.5" />
               </button>
             </div>
-            <p className="text-[10px] md:text-xs text-primary/80 font-bold uppercase tracking-widest italic animate-pulse">Imagem pronta para análise...</p>
+            <p className="text-[9px] md:text-xs text-primary/80 font-bold uppercase tracking-widest italic animate-pulse">Imagem pronta para análise...</p>
           </div>
         )}
 
-        <div className="p-3 md:p-6 bg-transparent">
-          <form onSubmit={handleSendMessage} className="flex gap-2 md:gap-3 max-w-4xl mx-auto items-center bg-white/[0.05] border border-white/10 p-1.5 md:p-3 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl">
+        <div className="p-2 md:p-6 bg-transparent">
+          <form onSubmit={handleSendMessage} className="flex gap-1.5 md:gap-3 max-w-4xl mx-auto items-center bg-white/[0.05] border border-white/10 p-1 md:p-3 rounded-[1.8rem] md:rounded-[2.5rem] shadow-2xl">
             <input 
               type="file" 
               ref={fileInputRef} 
@@ -542,17 +542,17 @@ export default function PetChatPage() {
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="h-9 w-9 md:h-12 md:w-12 shrink-0 rounded-full text-white/40 hover:text-primary hover:bg-primary/10 transition-all"
+                  className="h-8 w-8 md:h-12 md:w-12 shrink-0 rounded-full text-white/40 hover:text-primary hover:bg-primary/10 transition-all"
                 >
-                  <Paperclip className="h-5 w-5" />
+                  <Paperclip className="h-4 w-4 md:h-5 md:w-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-44 bg-card border-white/10 p-1.5 rounded-xl shadow-2xl mb-2">
-                <DropdownMenuItem onClick={() => cameraInputRef.current?.click()} className="gap-3 cursor-pointer py-2.5 rounded-lg focus:bg-primary/10 focus:text-primary text-xs md:text-sm font-medium">
-                  <Camera className="h-4 w-4" /> Câmera
+              <DropdownMenuContent align="start" className="w-40 bg-card border-white/10 p-1.5 rounded-xl shadow-2xl mb-2">
+                <DropdownMenuItem onClick={() => cameraInputRef.current?.click()} className="gap-2.5 cursor-pointer py-2 rounded-lg focus:bg-primary/10 focus:text-primary text-[11px] md:text-sm font-medium">
+                  <Camera className="h-3.5 w-3.5" /> Câmera
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => fileInputRef.current?.click()} className="gap-3 cursor-pointer py-2.5 rounded-lg focus:bg-primary/10 focus:text-primary text-xs md:text-sm font-medium">
-                  <ImageIcon className="h-4 w-4" /> Galeria
+                <DropdownMenuItem onClick={() => fileInputRef.current?.click()} className="gap-2.5 cursor-pointer py-2 rounded-lg focus:bg-primary/10 focus:text-primary text-[11px] md:text-sm font-medium">
+                  <ImageIcon className="h-3.5 w-3.5" /> Galeria
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -562,19 +562,19 @@ export default function PetChatPage() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               disabled={isSending || isLimitReached}
-              className="flex-1 bg-transparent border-none focus-visible:ring-0 h-9 md:h-12 text-sm md:text-base text-white/80 placeholder:text-white/20 px-1"
+              className="flex-1 bg-transparent border-none focus-visible:ring-0 h-8 md:h-12 text-xs md:text-base text-white/80 placeholder:text-white/20 px-1"
             />
             
             <Button 
               type="submit" 
               size="icon" 
               disabled={isSending || (!input.trim() && !pendingImage) || isLimitReached}
-              className="h-9 w-9 md:h-12 md:w-12 shrink-0 rounded-full shadow-[0_0_20px_rgba(var(--primary),0.3)] bg-primary text-primary-foreground hover:scale-105 active:scale-95 transition-all"
+              className="h-8 w-8 md:h-12 md:w-12 shrink-0 rounded-full shadow-[0_0_20px_rgba(var(--primary),0.3)] bg-primary text-primary-foreground hover:scale-105 active:scale-95 transition-all"
             >
-              {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              {isSending ? <Loader2 className="h-3.5 w-3.5 md:h-4 md:w-4 animate-spin" /> : <Send className="h-3.5 w-3.5 md:h-4 md:w-4" />}
             </Button>
           </form>
-          <p className="text-[7px] md:text-[8px] text-center text-white/10 mt-3 md:mt-4 uppercase font-bold tracking-[0.3em] pointer-events-none">
+          <p className="text-[6px] md:text-[8px] text-center text-white/10 mt-2 md:mt-4 uppercase font-bold tracking-[0.3em] pointer-events-none">
             WS Studios • Previna Doenças • Vet IA v2.5
           </p>
         </div>

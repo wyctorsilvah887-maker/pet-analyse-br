@@ -4,7 +4,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription } from '@/components/ui/card';
-import { ShieldCheck, Heart, AlertCircle, MessageCircle, Sparkles, ArrowRight, Loader2, Crown } from 'lucide-react';
+import { ShieldCheck, Heart, AlertCircle, MessageCircle, Sparkles, ArrowRight, Loader2, Crown, PawPrint } from 'lucide-react';
 import Header from '@/components/Header';
 import Image from 'next/image';
 import { useUser, useCollection, useFirestore, useDoc } from '@/firebase';
@@ -180,8 +180,14 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="border-t border-white/5 bg-transparent py-8">
-        <div className="container mx-auto px-4 text-center">
+      <footer className="border-t border-white/5 bg-transparent py-10">
+        <div className="container mx-auto px-4 text-center space-y-4">
+          <div className="flex items-center justify-center space-x-2 opacity-30 grayscale hover:grayscale-0 transition-all cursor-default">
+            <PawPrint className="h-5 w-5 text-foreground" />
+            <span className="font-headline text-sm font-bold tracking-tight text-foreground">
+              Vet <span className="text-primary">IA</span>
+            </span>
+          </div>
            <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-[0.3em] opacity-30">
             &copy; {new Date().getFullYear()} Vet IA • WS Studios • All Rights Reserved
           </p>
