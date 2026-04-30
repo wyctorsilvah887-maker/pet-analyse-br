@@ -68,15 +68,26 @@ Mensagem atual do usuário: {{{userMessage}}}
 
 export async function petChat(input: PetChatInput): Promise<PetChatOutput> {
   try {
+    // Verificação preventiva da chave de API
+    if (!process.env.GOOGLE_GENAI_API_KEY) {
+      throw new Error('API_KEY_MISSING');
+    }
+
     const { output } = await petChatPrompt(input);
     if (!output) throw new Error('Nenhuma resposta gerada pela IA.');
     return output;
   } catch (error: any) {
     console.error('Erro no fluxo petChat:', error);
-    // Retorna uma mensagem amigável em vez de quebrar com 500
-    if (error.message?.includes('API key') || error.status === 403) {
-      return { text: "Desculpe, estou passando por uma manutenção técnica no meu sistema de IA (chave de API bloqueada). Por favor, avise o suporte da WS Studios." };
+    
+    // Tratamento de erros de infraestrutura de IA
+    if (error.message === 'API_KEY_MISSING' || error.message?.includes('API key') || error.status === 403) {
+      return { 
+        text: "Desculpe, o sistema de IA está em manutenção técnica (credenciais indisponíveis). Por favor, tente novamente mais tarde ou contate o suporte da WS Studios." 
+      };
     }
-    return { text: "Desculpe, tive um problema temporário ao processar sua mensagem. Por favor, tente novamente em alguns instantes." };
+    
+    return { 
+      text: "Desculpe, tive um problema temporário ao processar sua mensagem. Por favor, tente novamente em alguns instantes." 
+    };
   }
 }
