@@ -55,7 +55,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
@@ -63,7 +62,7 @@ import Image from 'next/image';
 const PLAN_LIMITS: Record<string, number> = {
   free: 6,
   premium: 30,
-  pro: 999999, // Praticamente ilimitado para a UI
+  pro: 999999,
 };
 
 const compressImage = (dataUrl: string, maxWidth = 1000, maxHeight = 1000, quality = 0.7): Promise<string> => {
@@ -421,10 +420,18 @@ export default function PetChatPage() {
 
         <div 
           ref={scrollRef}
-          className="flex-1 overflow-y-auto p-2 md:p-8 space-y-4 md:space-y-10 bg-black no-scrollbar overscroll-contain"
+          className="flex-1 overflow-y-auto p-2 md:p-8 space-y-4 md:space-y-10 bg-black no-scrollbar overscroll-contain relative"
         >
+          {/* Marca d'água discreta de fundo para prints */}
+          <div className="fixed inset-0 flex items-center justify-center opacity-[0.02] pointer-events-none select-none z-0">
+             <div className="flex flex-col items-center rotate-[-15deg]">
+               <PawPrint className="h-40 w-40 md:h-64 md:w-64 text-white" />
+               <span className="font-headline text-4xl md:text-6xl font-black uppercase tracking-[0.5em] text-white">Vet IA</span>
+             </div>
+          </div>
+
           {messages.length >= messageLimit && (
-            <div className="flex justify-center pb-2">
+            <div className="flex justify-center pb-2 relative z-10">
               <Button 
                 variant="ghost" 
                 size="sm" 
@@ -439,7 +446,7 @@ export default function PetChatPage() {
           )}
 
           {messages.length === 0 && !isSending && (
-            <div className="flex flex-col items-center justify-center h-full py-10 md:py-20 space-y-4 md:space-y-6 text-center opacity-40">
+            <div className="flex flex-col items-center justify-center h-full py-10 md:py-20 space-y-4 md:space-y-6 text-center opacity-40 relative z-10">
               <div className="bg-primary/5 p-4 md:p-6 rounded-full ring-1 ring-primary/10">
                 <Bot className="h-7 w-7 md:h-10 md:w-10 text-primary" />
               </div>
@@ -453,7 +460,7 @@ export default function PetChatPage() {
             <div
               key={msg.id || idx}
               className={cn(
-                "flex items-start gap-2 md:gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300",
+                "flex items-start gap-2 md:gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300 relative z-10",
                 msg.role === 'user' ? "flex-row-reverse" : "flex-row"
               )}
             >
@@ -488,7 +495,7 @@ export default function PetChatPage() {
           ))}
           
           {isSending && (
-            <div className="flex items-start gap-2 md:gap-4 animate-in fade-in">
+            <div className="flex items-start gap-2 md:gap-4 animate-in fade-in relative z-10">
               <div className="bg-black border border-white/10 h-7 w-7 md:h-9 md:w-9 rounded-full flex items-center justify-center">
                 <Bot className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary" />
               </div>
@@ -501,10 +508,18 @@ export default function PetChatPage() {
               </div>
             </div>
           )}
+
+          {/* Selo discreto no final para prints de divulgação */}
+          <div className="pt-8 pb-4 flex items-center justify-center opacity-20 relative z-10">
+            <div className="flex items-center gap-2 border border-white/10 px-3 py-1.5 rounded-full">
+              <PawPrint className="h-3 w-3 text-primary" />
+              <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white">IA PREVENTIVA • WS STUDIOS</span>
+            </div>
+          </div>
         </div>
 
         {pendingImage && (
-          <div className="px-3 py-2 bg-black/90 backdrop-blur-lg border-t border-white/5 flex items-center gap-3 animate-in slide-in-from-bottom-4">
+          <div className="px-3 py-2 bg-black/90 backdrop-blur-lg border-t border-white/5 flex items-center gap-3 animate-in slide-in-from-bottom-4 z-30">
             <div className="relative h-12 w-12 md:h-20 md:w-20 rounded-lg overflow-hidden border-2 border-primary/30 shadow-2xl shrink-0">
               <Image src={pendingImage} alt="Preview" fill className="object-cover" />
               <button 
@@ -518,7 +533,7 @@ export default function PetChatPage() {
           </div>
         )}
 
-        <div className="p-2 md:p-6 bg-transparent">
+        <div className="p-2 md:p-6 bg-transparent relative z-30">
           <form onSubmit={handleSendMessage} className="flex gap-1.5 md:gap-3 max-w-4xl mx-auto items-center bg-white/[0.05] border border-white/10 p-1 md:p-3 rounded-[1.8rem] md:rounded-[2.5rem] shadow-2xl">
             <input 
               type="file" 
@@ -574,9 +589,13 @@ export default function PetChatPage() {
               {isSending ? <Loader2 className="h-3.5 w-3.5 md:h-4 md:w-4 animate-spin" /> : <Send className="h-3.5 w-3.5 md:h-4 md:w-4" />}
             </Button>
           </form>
-          <p className="text-[6px] md:text-[8px] text-center text-white/10 mt-2 md:mt-4 uppercase font-bold tracking-[0.3em] pointer-events-none">
-            WS Studios • Previna Doenças • Vet IA v2.5
-          </p>
+          <div className="flex flex-col items-center mt-2 md:mt-4 pointer-events-none">
+             <div className="flex items-center gap-1 opacity-20">
+                <PawPrint className="h-2 w-2 md:h-3 md:w-3 text-white" />
+                <span className="text-[6px] md:text-[8px] uppercase font-bold tracking-[0.3em] text-white">Vet IA • WS Studios</span>
+             </div>
+             <p className="text-[5px] md:text-[6px] text-white/5 uppercase font-bold tracking-[0.4em] mt-1">Versão 2.5 • Antiviral & Preventive Tech</p>
+          </div>
         </div>
       </main>
     </div>

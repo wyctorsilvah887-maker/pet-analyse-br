@@ -180,15 +180,20 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="border-t border-white/5 bg-transparent py-10">
-        <div className="container mx-auto px-4 text-center space-y-4">
-          <div className="flex items-center justify-center space-x-2 opacity-30 grayscale hover:grayscale-0 transition-all cursor-default">
-            <PawPrint className="h-5 w-5 text-foreground" />
-            <span className="font-headline text-sm font-bold tracking-tight text-foreground">
-              Vet <span className="text-primary">IA</span>
-            </span>
+      <footer className="border-t border-white/5 bg-transparent py-10 mt-12">
+        <div className="container mx-auto px-4 text-center space-y-6">
+          <div className="flex flex-col items-center space-y-2 opacity-40 hover:opacity-100 transition-opacity cursor-default group">
+            <div className="flex items-center space-x-2">
+              <PawPrint className="h-5 w-5 text-foreground group-hover:text-primary transition-colors" />
+              <span className="font-headline text-lg font-bold tracking-tight text-foreground">
+                Vet <span className="text-primary">IA</span>
+              </span>
+            </div>
+            <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-muted-foreground">
+              Desenvolvido por <span className="text-foreground">WS Studios</span>
+            </p>
           </div>
-           <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-[0.3em] opacity-30">
+          <p className="text-[8px] text-muted-foreground font-medium uppercase tracking-[0.2em] opacity-30">
             &copy; {new Date().getFullYear()} Vet IA • WS Studios • All Rights Reserved
           </p>
         </div>
