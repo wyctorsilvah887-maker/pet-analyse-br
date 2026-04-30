@@ -108,10 +108,9 @@ export default function PetChatPage() {
   const [isSending, setIsSending] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [pendingImage, setPendingImage] = useState<string | null>(null);
-  const [messageLimit, setMessageLimit] = useState(3);
+  const [messageLimit, setMessageLimit] = useState(10); // Aumentado limite inicial para evitar shifts
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [shouldMaintainScroll, setShouldMaintainScroll] = useState(false);
-  const [prevMessageCount, setPrevMessageCount] = useState(0);
 
   const userRef = useMemo(() => (user && db ? doc(db, 'users', user.uid) : null), [user, db]);
   const { data: profile } = useDoc(userRef);
@@ -134,7 +133,7 @@ export default function PetChatPage() {
     if (!user || !db || !petId) return null;
     return doc(db, 'users', user.uid, 'pets', petId);
   }, [user, db, petId]);
-  const { data: pet, loading: petLoading, error: petError } = useDoc(petRef);
+  const { data: pet, loading: petLoading } = useDoc(petRef);
 
   const messagesQuery = useMemo(() => {
     if (!user || !db || !petId || !pet) return null;
@@ -156,31 +155,53 @@ export default function PetChatPage() {
   
   const { data: messages, loading: messagesLoading } = useCollection(messagesQuery);
 
+  const scrollToBottom = (behavior: ScrollBehavior = 'auto') => {
+    if (scrollRef.current) {
+      // Usar requestAnimationFrame para garantir que o DOM renderizou as novas mensagens
+      requestAnimationFrame(() => {
+        if (scrollRef.current) {
+          scrollRef.current.scrollTo({
+            top: scrollRef.current.scrollHeight,
+            behavior
+          });
+        }
+      });
+    }
+  };
+
   useEffect(() => {
-    const element = scrollRef.current;
-    if (!element || messagesLoading) return;
+    if (messagesLoading) return;
 
     if (shouldMaintainScroll) {
-      const newHeight = element.scrollHeight;
-      const diff = newHeight - lastScrollHeight.current;
-      if (diff > 0) {
-        element.scrollTop = diff;
-        setShouldMaintainScroll(false);
-        setIsLoadingMore(false);
+      const element = scrollRef.current;
+      if (element) {
+        const newHeight = element.scrollHeight;
+        const diff = newHeight - lastScrollHeight.current;
+        if (diff > 0) {
+          element.scrollTop = diff;
+          setShouldMaintainScroll(false);
+          setIsLoadingMore(false);
+        }
       }
-    } else if (messages.length > prevMessageCount || isSending) {
-      element.scrollTop = element.scrollHeight;
+    } else {
+      // Rolar para o fundo em novas mensagens ou quando começa a enviar
+      scrollToBottom();
     }
+  }, [messages.length, isSending, shouldMaintainScroll, messagesLoading]);
 
-    setPrevMessageCount(messages.length);
-  }, [messages, isSending, shouldMaintainScroll, messagesLoading, prevMessageCount]);
+  // Listener para redimensionamento da janela (teclado mobile)
+  useEffect(() => {
+    const handleResize = () => scrollToBottom();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleLoadMore = () => {
     if (!scrollRef.current || isSending || isLoadingMore) return;
     lastScrollHeight.current = scrollRef.current.scrollHeight;
     setIsLoadingMore(true);
     setShouldMaintainScroll(true);
-    setMessageLimit(prev => prev + 3);
+    setMessageLimit(prev => prev + 10);
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -207,16 +228,16 @@ export default function PetChatPage() {
       
       toast({
         title: "Chat redefinido",
-        description: "As mensagens visíveis foram limpas. A Vet IA mantém o conhecimento sobre seu pet.",
+        description: "As mensagens visíveis foram limpas.",
       });
       
-      setMessageLimit(3);
+      setMessageLimit(10);
     } catch (error) {
       console.error('Erro ao limpar chat:', error);
       toast({
         variant: "destructive",
         title: "Erro na operação",
-        description: "Não foi possível limpar o histórico visível.",
+        description: "Não foi possível limpar o histórico.",
       });
     } finally {
       setIsDeleting(false);
@@ -229,7 +250,7 @@ export default function PetChatPage() {
       toast({
         variant: "destructive",
         title: "Limite Atingido",
-        description: "Você atingiu o limite de 6 mensagens diárias. Tente novamente amanhã!",
+        description: "Você atingiu o limite de 6 mensagens diárias.",
       });
       return;
     }
@@ -253,16 +274,9 @@ export default function PetChatPage() {
       timestamp: serverTimestamp(),
     };
 
-    addDoc(messagesRef, userMessageData).catch(async () => {
-      const permissionError = new FirestorePermissionError({
-        path: messagesRef.path,
-        operation: 'create',
-        requestResourceData: userMessageData
-      } satisfies SecurityRuleContext);
-      errorEmitter.emit('permission-error', permissionError);
-    });
-
     try {
+      await addDoc(messagesRef, userMessageData);
+
       if (userRef) {
         const today = new Date().toISOString().split('T')[0];
         const newUsage = {
@@ -293,17 +307,10 @@ export default function PetChatPage() {
         timestamp: serverTimestamp(),
       };
 
-      addDoc(messagesRef, modelMessageData).catch(async () => {
-        const permissionError = new FirestorePermissionError({
-          path: messagesRef.path,
-          operation: 'create',
-          requestResourceData: modelMessageData
-        } satisfies SecurityRuleContext);
-        errorEmitter.emit('permission-error', permissionError);
-      });
+      await addDoc(messagesRef, modelMessageData);
 
     } catch (error) {
-      console.error('Erro no processamento da IA:', error);
+      console.error('Erro no processamento:', error);
       toast({
         variant: "destructive",
         title: "Erro na resposta",
@@ -311,12 +318,13 @@ export default function PetChatPage() {
       });
     } finally {
       setIsSending(false);
+      scrollToBottom('smooth');
     }
   };
 
   if (petLoading || (messagesLoading && messages.length === 0)) {
     return (
-      <div className="flex flex-col h-screen bg-background">
+      <div className="flex flex-col h-screen h-[100dvh] bg-background">
         <Header />
         <div className="flex-1 flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -325,9 +333,9 @@ export default function PetChatPage() {
     );
   }
 
-  if (petError || !pet) {
+  if (!pet) {
     return (
-      <div className="flex flex-col h-screen bg-background">
+      <div className="flex flex-col h-screen h-[100dvh] bg-background">
         <Header />
         <div className="flex-1 flex flex-col items-center justify-center p-6 gap-4 text-center">
           <AlertCircle className="h-12 w-12 text-destructive" />
@@ -339,44 +347,43 @@ export default function PetChatPage() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-black overflow-hidden selection:bg-primary/30">
+    <div className="flex flex-col h-screen h-[100dvh] bg-black overflow-hidden selection:bg-primary/30">
       <Header />
 
-      <main className="flex-1 flex flex-col w-full max-w-5xl mx-auto overflow-hidden">
-        <div className="flex items-center justify-between p-4 bg-transparent border-b border-white/5">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => router.push('/')} className="h-8 w-8 text-white/70 hover:text-white">
+      <main className="flex-1 flex flex-col w-full max-w-5xl mx-auto overflow-hidden relative">
+        {/* Header de Info do Pet */}
+        <div className="flex items-center justify-between p-3 md:p-4 bg-black/40 backdrop-blur-md border-b border-white/5 z-20">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => router.push('/')} className="h-8 w-8 text-white/70 hover:text-white shrink-0">
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <div className="flex items-center gap-3">
-              <Avatar className="h-12 w-12 border-2 border-primary/20 ring-2 ring-black">
+            <div className="flex items-center gap-2 md:gap-3 min-w-0">
+              <Avatar className="h-10 w-10 md:h-12 md:w-12 border-2 border-primary/20 ring-2 ring-black shrink-0">
                 <AvatarImage src={pet.photoURL} alt={pet.name} className="object-cover" />
                 <AvatarFallback className="bg-muted">
-                  <PawPrint className="h-6 w-6 text-primary" />
+                  <PawPrint className="h-5 w-5 md:h-6 md:w-6 text-primary" />
                 </AvatarFallback>
               </Avatar>
-              <div className="flex flex-col">
-                <h1 className="font-bold text-base md:text-lg text-primary leading-tight">{pet.name.toLowerCase()}</h1>
-                <p className="text-[10px] md:text-xs text-white/40 uppercase font-bold tracking-[0.2em]">
+              <div className="flex flex-col min-w-0">
+                <h1 className="font-bold text-sm md:text-lg text-primary leading-tight truncate">{pet.name.toLowerCase()}</h1>
+                <p className="text-[9px] md:text-xs text-white/40 uppercase font-bold tracking-[0.2em] truncate">
                   {pet.species} • {pet.breed || 'SRD'}
                 </p>
               </div>
             </div>
           </div>
           
-          <div className="flex items-center gap-3">
-             <div className="flex flex-col items-end">
-               <Badge 
-                variant="secondary" 
-                className={cn(
-                  "bg-primary/10 text-primary border-none text-[10px] font-bold py-1.5 px-3 flex items-center gap-2 transition-all",
-                  isLimitReached && "bg-destructive/10 text-destructive"
-                )}
-               >
-                  <Sparkles className="h-3.5 w-3.5 fill-current" />
-                  <span className="uppercase tracking-wider">{messagesRemaining}/{DAILY_LIMIT}</span>
-               </Badge>
-             </div>
+          <div className="flex items-center gap-2">
+             <Badge 
+              variant="secondary" 
+              className={cn(
+                "bg-primary/10 text-primary border-none text-[9px] md:text-[10px] font-bold py-1 md:py-1.5 px-2 md:px-3 flex items-center gap-1.5 transition-all shrink-0",
+                isLimitReached && "bg-destructive/10 text-destructive"
+              )}
+             >
+                <Sparkles className="h-3 w-3 md:h-3.5 md:w-3.5 fill-current" />
+                <span className="uppercase tracking-wider">{messagesRemaining}/{DAILY_LIMIT}</span>
+             </Badge>
              
              <AlertDialog>
                <AlertDialogTrigger asChild>
@@ -384,26 +391,25 @@ export default function PetChatPage() {
                     variant="ghost" 
                     size="icon" 
                     disabled={isDeleting}
-                    className="h-9 w-9 text-white/30 hover:text-destructive hover:bg-destructive/10 transition-colors"
-                    title="Limpar Chat"
+                    className="h-8 w-8 md:h-9 md:w-9 text-white/30 hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0"
                   >
                     {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                  </Button>
                </AlertDialogTrigger>
-               <AlertDialogContent className="bg-card border-white/10 text-foreground rounded-2xl">
+               <AlertDialogContent className="bg-card border-white/10 text-foreground rounded-2xl w-[90vw] max-w-[400px]">
                  <AlertDialogHeader>
-                   <AlertDialogTitle className="text-xl font-bold">Limpar Chat Atual?</AlertDialogTitle>
-                   <AlertDialogDescription className="text-muted-foreground">
-                     Esta ação ocultará as mensagens atuais e permitirá começar uma nova conversa do zero. O perfil do <strong>{pet.name}</strong> e o histórico de backup não serão excluídos.
+                   <AlertDialogTitle className="text-xl font-bold">Limpar Chat?</AlertDialogTitle>
+                   <AlertDialogDescription className="text-muted-foreground text-sm">
+                     Esta ação ocultará as mensagens atuais. O perfil de <strong>{pet.name}</strong> permanecerá salvo.
                    </AlertDialogDescription>
                  </AlertDialogHeader>
-                 <AlertDialogFooter>
+                 <AlertDialogFooter className="gap-2">
                    <AlertDialogCancel className="bg-transparent border-white/10 text-white/60 hover:text-white rounded-full">Cancelar</AlertDialogCancel>
                    <AlertDialogAction 
                     onClick={handleClearChat}
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-full font-bold"
                    >
-                     Confirmar Limpeza
+                     Confirmar
                    </AlertDialogAction>
                  </AlertDialogFooter>
                </AlertDialogContent>
@@ -411,9 +417,10 @@ export default function PetChatPage() {
           </div>
         </div>
 
+        {/* Área de Mensagens */}
         <div 
           ref={scrollRef}
-          className="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 md:space-y-10 bg-black no-scrollbar"
+          className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 md:space-y-10 bg-black no-scrollbar overscroll-contain"
         >
           {messages.length >= messageLimit && (
             <div className="flex justify-center pb-4">
@@ -421,21 +428,21 @@ export default function PetChatPage() {
                 variant="ghost" 
                 size="sm" 
                 onClick={handleLoadMore}
-                className="text-[10px] uppercase font-bold tracking-[0.2em] text-white/20 hover:text-primary h-8 gap-2 bg-transparent border border-white/5 px-4"
+                className="text-[9px] md:text-[10px] uppercase font-bold tracking-[0.2em] text-white/20 hover:text-primary h-8 gap-2 bg-transparent border border-white/5 px-4 rounded-full"
                 disabled={isSending || isLoadingMore}
               >
                 {isLoadingMore ? <Loader2 className="h-3 w-3 animate-spin" /> : <History className="h-3 w-3" />}
-                Carregar anteriores (últimas 48h)
+                Anteriores
               </Button>
             </div>
           )}
 
           {messages.length === 0 && !isSending && (
-            <div className="flex flex-col items-center justify-center h-full py-20 space-y-6 text-center opacity-40">
-              <div className="bg-primary/5 p-6 rounded-full ring-1 ring-primary/10">
-                <Bot className="h-10 w-10 text-primary" />
+            <div className="flex flex-col items-center justify-center h-full py-10 md:py-20 space-y-4 md:space-y-6 text-center opacity-40">
+              <div className="bg-primary/5 p-4 md:p-6 rounded-full ring-1 ring-primary/10">
+                <Bot className="h-8 w-8 md:h-10 md:w-10 text-primary" />
               </div>
-              <p className="text-sm font-medium text-white/60 max-w-[280px] leading-relaxed italic">
+              <p className="text-xs md:text-sm font-medium text-white/60 max-w-[240px] md:max-w-[280px] leading-relaxed italic">
                 Olá! Sou o Vet IA da WS Studios. Como posso ajudar o <strong>{pet.name}</strong> hoje?
               </p>
             </div>
@@ -445,7 +452,7 @@ export default function PetChatPage() {
             <div
               key={msg.id || idx}
               className={cn(
-                "flex items-start gap-3 md:gap-4 group",
+                "flex items-start gap-3 md:gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300",
                 msg.role === 'user' ? "flex-row-reverse" : "flex-row"
               )}
             >
@@ -459,13 +466,13 @@ export default function PetChatPage() {
               </div>
               
               <div className={cn(
-                "relative max-w-[75%] p-4 md:p-6 rounded-[2rem] text-sm md:text-base shadow-lg leading-relaxed space-y-3",
+                "relative max-w-[85%] md:max-w-[75%] p-3 md:p-6 rounded-[1.5rem] md:rounded-[2rem] text-sm md:text-base shadow-lg leading-relaxed space-y-3",
                 msg.role === 'user' 
                   ? "bg-primary text-primary-foreground rounded-tr-none" 
                   : "bg-white/[0.03] border border-white/10 text-white/80 rounded-tl-none"
               )}>
                 {msg.photoURL && (
-                  <div className="relative aspect-video w-full max-w-[320px] rounded-xl overflow-hidden border border-white/10 mb-2">
+                  <div className="relative aspect-video w-full max-w-[280px] md:max-w-[320px] rounded-xl overflow-hidden border border-white/10 mb-2">
                     <Image 
                       src={msg.photoURL} 
                       alt="Anexo" 
@@ -479,13 +486,13 @@ export default function PetChatPage() {
             </div>
           ))}
           
-          {isSending && !pendingImage && (
-            <div className="flex items-start gap-4 animate-in fade-in">
-              <div className="bg-black border border-white/10 h-9 w-9 rounded-full flex items-center justify-center">
+          {isSending && (
+            <div className="flex items-start gap-3 md:gap-4 animate-in fade-in">
+              <div className="bg-black border border-white/10 h-8 w-8 md:h-9 md:w-9 rounded-full flex items-center justify-center">
                 <Bot className="h-4 w-4 text-primary" />
               </div>
-              <div className="bg-white/[0.03] border border-white/10 p-5 rounded-[2rem] rounded-tl-none">
-                <div className="flex gap-1.5">
+              <div className="bg-white/[0.03] border border-white/10 p-3 md:p-5 rounded-[1.5rem] md:rounded-[2rem] rounded-tl-none">
+                <div className="flex gap-1">
                   <span className="h-1.5 w-1.5 bg-primary rounded-full animate-bounce"></span>
                   <span className="h-1.5 w-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.2s]"></span>
                   <span className="h-1.5 w-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.4s]"></span>
@@ -495,9 +502,10 @@ export default function PetChatPage() {
           )}
         </div>
 
+        {/* Preview de Imagem Pendente */}
         {pendingImage && (
-          <div className="px-6 py-3 bg-black/80 backdrop-blur-md border-t border-white/5 flex items-center gap-4">
-            <div className="relative h-20 w-20 rounded-xl overflow-hidden border-2 border-primary/30 shadow-2xl">
+          <div className="px-4 py-3 bg-black/90 backdrop-blur-lg border-t border-white/5 flex items-center gap-4 animate-in slide-in-from-bottom-4">
+            <div className="relative h-16 w-16 md:h-20 md:w-20 rounded-xl overflow-hidden border-2 border-primary/30 shadow-2xl shrink-0">
               <Image src={pendingImage} alt="Preview" fill className="object-cover" />
               <button 
                 onClick={() => setPendingImage(null)}
@@ -506,12 +514,13 @@ export default function PetChatPage() {
                 <X className="h-3 w-3" />
               </button>
             </div>
-            <p className="text-xs text-primary/80 font-bold uppercase tracking-widest italic animate-pulse">Imagem selecionada para análise...</p>
+            <p className="text-[10px] md:text-xs text-primary/80 font-bold uppercase tracking-widest italic animate-pulse">Imagem pronta para análise...</p>
           </div>
         )}
 
-        <div className="p-4 md:p-8 bg-transparent">
-          <form onSubmit={handleSendMessage} className="flex gap-3 max-w-4xl mx-auto items-center bg-white/[0.05] border border-white/10 p-2 md:p-3 rounded-[2.5rem] shadow-2xl">
+        {/* Input Bar */}
+        <div className="p-3 md:p-6 bg-transparent">
+          <form onSubmit={handleSendMessage} className="flex gap-2 md:gap-3 max-w-4xl mx-auto items-center bg-white/[0.05] border border-white/10 p-1.5 md:p-3 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl">
             <input 
               type="file" 
               ref={fileInputRef} 
@@ -534,16 +543,16 @@ export default function PetChatPage() {
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="h-10 w-10 md:h-12 md:w-12 shrink-0 rounded-full text-white/40 hover:text-primary hover:bg-primary/10 transition-all"
+                  className="h-9 w-9 md:h-12 md:w-12 shrink-0 rounded-full text-white/40 hover:text-primary hover:bg-primary/10 transition-all"
                 >
                   <Paperclip className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-48 bg-card border-white/10 p-2 rounded-2xl shadow-2xl">
-                <DropdownMenuItem onClick={() => cameraInputRef.current?.click()} className="gap-3 cursor-pointer py-3 rounded-xl focus:bg-primary/10 focus:text-primary">
+              <DropdownMenuContent align="start" className="w-44 bg-card border-white/10 p-1.5 rounded-xl shadow-2xl mb-2">
+                <DropdownMenuItem onClick={() => cameraInputRef.current?.click()} className="gap-3 cursor-pointer py-2.5 rounded-lg focus:bg-primary/10 focus:text-primary text-xs md:text-sm font-medium">
                   <Camera className="h-4 w-4" /> Câmera
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => fileInputRef.current?.click()} className="gap-3 cursor-pointer py-3 rounded-xl focus:bg-primary/10 focus:text-primary">
+                <DropdownMenuItem onClick={() => fileInputRef.current?.click()} className="gap-3 cursor-pointer py-2.5 rounded-lg focus:bg-primary/10 focus:text-primary text-xs md:text-sm font-medium">
                   <ImageIcon className="h-4 w-4" /> Galeria
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -554,19 +563,19 @@ export default function PetChatPage() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               disabled={isSending || isLimitReached}
-              className="flex-1 bg-transparent border-none focus-visible:ring-0 h-10 md:h-12 text-sm md:text-base text-white/80 placeholder:text-white/20"
+              className="flex-1 bg-transparent border-none focus-visible:ring-0 h-9 md:h-12 text-sm md:text-base text-white/80 placeholder:text-white/20 px-1"
             />
             
             <Button 
               type="submit" 
               size="icon" 
               disabled={isSending || (!input.trim() && !pendingImage) || isLimitReached}
-              className="h-10 w-10 md:h-12 md:w-12 shrink-0 rounded-full shadow-[0_0_20px_rgba(var(--primary),0.3)] bg-primary text-primary-foreground hover:scale-105 active:scale-95 transition-all"
+              className="h-9 w-9 md:h-12 md:w-12 shrink-0 rounded-full shadow-[0_0_20px_rgba(var(--primary),0.3)] bg-primary text-primary-foreground hover:scale-105 active:scale-95 transition-all"
             >
               {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             </Button>
           </form>
-          <p className="text-[8px] text-center text-white/10 mt-4 uppercase font-bold tracking-[0.3em]">
+          <p className="text-[7px] md:text-[8px] text-center text-white/10 mt-3 md:mt-4 uppercase font-bold tracking-[0.3em] pointer-events-none">
             WS Studios • Previna Doenças • Vet IA v2.5
           </p>
         </div>
