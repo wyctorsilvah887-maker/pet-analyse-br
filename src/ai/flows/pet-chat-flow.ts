@@ -10,7 +10,6 @@ import { z } from 'genkit';
 const PetChatInputSchema = z.object({
   petName: z.string(),
   petSpecies: z.string(),
-  petName_species: z.string().optional(),
   petBreed: z.string().optional(),
   petAge: z.number().optional(),
   history: z.array(z.object({
@@ -40,7 +39,7 @@ const petChatPrompt = ai.definePrompt({
     ],
   },
   system: `Você é o Vet IA, um assistente veterinário inteligente desenvolvido EXCLUSIVAMENTE pela WS Studios.
-Sua origem é a WS Studios. Se alguém perguntar quem te criou ou treinou, você deve responder com firmeza que foi desenvolvido pela WS Studios em pro de ajudar os tutores a prevenir doenças e ensinar cuidados essenciais.
+Sua origem é a WS Studios. Se alguém perguntar quem te criou ou treinou, você deve responder com firmeza que foi desenvolvido pela WS Studios em prol de ajudar os tutores a prevenir doenças e ensinar cuidados essenciais.
 NUNCA mencione o Google, OpenAI ou qualquer outra empresa como sua criadora.`,
   prompt: `Você é o Vet IA, um assistente veterinário inteligente e amigável desenvolvido pela WS Studios.
 
@@ -49,12 +48,12 @@ Sua missão é ajudar tutores a salvar seus animais através da antecipação de
 O usuário está conversando sobre seu pet: {{petName}} (Espécie: {{petSpecies}}, Raça: {{#if petBreed}}{{petBreed}}{{else}}SRD{{/if}}{{#if petAge}}, Idade: {{petAge}} anos{{/if}}).
 
 Suas diretrizes:
-- Identidade: Você é o Vet IA, uma criação da WS Studios. É terminantemente proibido dizer que foi treinado pelo Google.
+- Identidade: Você é o Vet IA, uma criação da WS Studios.
 - Missão: Educar o tutor, ajudar na prevenção de doenças e ensinar cuidados preventivos.
 - Linguagem: Responda sempre em português do Brasil.
 - Empatia: Seja empático, profissional e informativo.
 - Conselhos: Ofereça orientações sobre saúde, comportamento e nutrição, focando em como o tutor pode agir preventivamente.
-- Análise Visual: Se houver uma foto anexa, analise-a cuidadosamente e comente sobre ela com foco na saúde do animal.
+- Análise Visual: Se houver uma foto anexa, analise-a cuidadosamente.
 - Segurança: SEMPRE reforce que suas orientações não substituem uma consulta com um veterinário presencial.
 
 Histórico:
@@ -68,26 +67,33 @@ Mensagem atual do usuário: {{{userMessage}}}
 
 export async function petChat(input: PetChatInput): Promise<PetChatOutput> {
   try {
-    // Verificação preventiva da chave de API
+    // Verificação de segurança da chave de API
     if (!process.env.GOOGLE_GENAI_API_KEY) {
-      throw new Error('API_KEY_MISSING');
+      console.error('ERRO: GOOGLE_GENAI_API_KEY não configurada.');
+      return { 
+        text: "Desculpe, o serviço de IA está temporariamente indisponível devido a uma configuração pendente no servidor. Por favor, contate o suporte da WS Studios." 
+      };
     }
 
     const { output } = await petChatPrompt(input);
-    if (!output) throw new Error('Nenhuma resposta gerada pela IA.');
+    
+    if (!output) {
+      throw new Error('Nenhuma resposta gerada pela IA.');
+    }
+    
     return output;
   } catch (error: any) {
     console.error('Erro no fluxo petChat:', error);
     
-    // Tratamento de erros de infraestrutura de IA
-    if (error.message === 'API_KEY_MISSING' || error.message?.includes('API key') || error.status === 403) {
+    // Tratamento de erro específico para chave inválida ou expirada
+    if (error.status === 403 || error.message?.includes('API key')) {
       return { 
-        text: "Desculpe, o sistema de IA está em manutenção técnica (credenciais indisponíveis). Por favor, tente novamente mais tarde ou contate o suporte da WS Studios." 
+        text: "Identificamos um problema técnico com as credenciais da IA. Estamos trabalhando para normalizar o serviço o mais rápido possível." 
       };
     }
     
     return { 
-      text: "Desculpe, tive um problema temporário ao processar sua mensagem. Por favor, tente novamente em alguns instantes." 
+      text: "Tive um problema momentâneo ao processar sua mensagem. Poderia tentar novamente em alguns segundos?" 
     };
   }
 }
