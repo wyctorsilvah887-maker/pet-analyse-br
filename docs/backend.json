@@ -111,7 +111,7 @@
           "type": "boolean",
           "description": "Indica se o usuário aceitou os termos de uso."
         },
-        "plan": {
+        "subscriptionPlan": {
           "type": "string",
           "enum": ["free", "premium", "pro"],
           "description": "Plano de assinatura do usuário."

@@ -119,7 +119,7 @@ export default function PetChatPage() {
   const userRef = useMemo(() => (user && db ? doc(db, 'users', user.uid) : null), [user, db]);
   const { data: profile } = useDoc(userRef);
 
-  const userPlan = profile?.plan || 'free';
+  const userPlan = profile?.subscriptionPlan || 'free';
   const dailyLimit = PLAN_LIMITS[userPlan] || 6;
   const isPro = userPlan === 'pro';
 

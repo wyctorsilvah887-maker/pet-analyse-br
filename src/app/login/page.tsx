@@ -50,7 +50,7 @@ export default function LoginPage() {
         updatedAt: serverTimestamp(),
         // Define o plano free se for novo usuário
         ...(!userDoc.exists() && { 
-          plan: 'free',
+          subscriptionPlan: 'free',
           createdAt: serverTimestamp(),
           acceptedTerms: false 
         })
@@ -85,7 +85,7 @@ export default function LoginPage() {
           email: firebaseUser.email,
           displayName: firebaseUser.displayName || 'Usuário Vet IA',
           createdAt: serverTimestamp(),
-          plan: 'free',
+          subscriptionPlan: 'free',
           acceptedTerms: false
         });
       }

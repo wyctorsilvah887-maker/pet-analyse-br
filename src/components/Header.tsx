@@ -38,7 +38,7 @@ export default function Header() {
   const photoURL = profile?.photoURL || user?.photoURL || null;
   const displayName = profile?.displayName || user?.displayName || 'Usuário';
   const email = profile?.email || user?.email;
-  const userPlan = profile?.plan || 'free';
+  const userPlan = profile?.subscriptionPlan || 'free';
 
   const planInfo = useMemo(() => {
     switch (userPlan) {

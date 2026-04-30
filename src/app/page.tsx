@@ -59,7 +59,7 @@ export default function Home() {
     }
   };
 
-  const userPlan = profile?.plan || 'free';
+  const userPlan = profile?.subscriptionPlan || 'free';
 
   return (
     <div className="min-h-screen bg-background text-foreground">
