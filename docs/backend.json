@@ -111,6 +111,18 @@
           "type": "boolean",
           "description": "Indica se o usuário aceitou os termos de uso."
         },
+        "plan": {
+          "type": "string",
+          "enum": ["free", "premium", "pro"],
+          "description": "Plano de assinatura do usuário."
+        },
+        "dailyIAUsage": {
+          "type": "object",
+          "properties": {
+            "date": { "type": "string" },
+            "count": { "type": "number" }
+          }
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time",

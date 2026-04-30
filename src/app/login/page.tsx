@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -38,12 +39,21 @@ export default function LoginPage() {
       const result = await signInWithPopup(auth, provider);
       const firebaseUser = result.user;
       
+      const userRef = doc(db, 'users', firebaseUser.uid);
+      const userDoc = await getDoc(userRef);
+
       // Criar/Atualizar perfil no Firestore
-      await setDoc(doc(db, 'users', firebaseUser.uid), {
+      await setDoc(userRef, {
         email: firebaseUser.email,
         displayName: firebaseUser.displayName,
         photoURL: firebaseUser.photoURL,
-        updatedAt: serverTimestamp()
+        updatedAt: serverTimestamp(),
+        // Define o plano free se for novo usuário
+        ...(!userDoc.exists() && { 
+          plan: 'free',
+          createdAt: serverTimestamp(),
+          acceptedTerms: false 
+        })
       }, { merge: true });
 
     } catch (error: any) {
@@ -68,12 +78,15 @@ export default function LoginPage() {
       const firebaseUser = userCredential.user;
 
       // Garantir que existe um documento de perfil
-      const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+      const userRef = doc(db, 'users', firebaseUser.uid);
+      const userDoc = await getDoc(userRef);
       if (!userDoc.exists()) {
-        await setDoc(doc(db, 'users', firebaseUser.uid), {
+        await setDoc(userRef, {
           email: firebaseUser.email,
           displayName: firebaseUser.displayName || 'Usuário Vet IA',
-          createdAt: serverTimestamp()
+          createdAt: serverTimestamp(),
+          plan: 'free',
+          acceptedTerms: false
         });
       }
 

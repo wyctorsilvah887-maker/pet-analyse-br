@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect, useRef } from 'react';
@@ -32,13 +33,12 @@ import {
   X,
   History,
   Trash2,
-  Sparkles
+  Sparkles,
+  Infinity as InfinityIcon
 } from 'lucide-react';
 import { petChat } from '@/ai/flows/pet-chat-flow';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
 import {
   DropdownMenu,
@@ -60,7 +60,11 @@ import {
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 
-const DAILY_LIMIT = 6;
+const PLAN_LIMITS: Record<string, number> = {
+  free: 6,
+  premium: 30,
+  pro: 999999, // Praticamente ilimitado para a UI
+};
 
 const compressImage = (dataUrl: string, maxWidth = 1000, maxHeight = 1000, quality = 0.7): Promise<string> => {
   return new Promise((resolve) => {
@@ -108,12 +112,16 @@ export default function PetChatPage() {
   const [isSending, setIsSending] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [pendingImage, setPendingImage] = useState<string | null>(null);
-  const [messageLimit, setMessageLimit] = useState(10); // Aumentado limite inicial para evitar shifts
+  const [messageLimit, setMessageLimit] = useState(10);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [shouldMaintainScroll, setShouldMaintainScroll] = useState(false);
 
   const userRef = useMemo(() => (user && db ? doc(db, 'users', user.uid) : null), [user, db]);
   const { data: profile } = useDoc(userRef);
+
+  const userPlan = profile?.plan || 'free';
+  const dailyLimit = PLAN_LIMITS[userPlan] || 6;
+  const isPro = userPlan === 'pro';
 
   const dailyUsage = useMemo(() => {
     if (!profile?.dailyIAUsage) return 0;
@@ -122,8 +130,8 @@ export default function PetChatPage() {
     return profile.dailyIAUsage.count || 0;
   }, [profile]);
 
-  const messagesRemaining = Math.max(0, DAILY_LIMIT - dailyUsage);
-  const isLimitReached = messagesRemaining <= 0;
+  const messagesRemaining = Math.max(0, dailyLimit - dailyUsage);
+  const isLimitReached = !isPro && messagesRemaining <= 0;
 
   const threshold48h = useMemo(() => {
     return Timestamp.fromDate(new Date(Date.now() - 48 * 60 * 60 * 1000));
@@ -157,7 +165,6 @@ export default function PetChatPage() {
 
   const scrollToBottom = (behavior: ScrollBehavior = 'auto') => {
     if (scrollRef.current) {
-      // Usar requestAnimationFrame para garantir que o DOM renderizou as novas mensagens
       requestAnimationFrame(() => {
         if (scrollRef.current) {
           scrollRef.current.scrollTo({
@@ -184,12 +191,10 @@ export default function PetChatPage() {
         }
       }
     } else {
-      // Rolar para o fundo em novas mensagens ou quando começa a enviar
       scrollToBottom();
     }
   }, [messages.length, isSending, shouldMaintainScroll, messagesLoading]);
 
-  // Listener para redimensionamento da janela (teclado mobile)
   useEffect(() => {
     const handleResize = () => scrollToBottom();
     window.addEventListener('resize', handleResize);
@@ -234,11 +239,6 @@ export default function PetChatPage() {
       setMessageLimit(10);
     } catch (error) {
       console.error('Erro ao limpar chat:', error);
-      toast({
-        variant: "destructive",
-        title: "Erro na operação",
-        description: "Não foi possível limpar o histórico.",
-      });
     } finally {
       setIsDeleting(false);
     }
@@ -250,7 +250,7 @@ export default function PetChatPage() {
       toast({
         variant: "destructive",
         title: "Limite Atingido",
-        description: "Você atingiu o limite de 6 mensagens diárias.",
+        description: `Seu plano ${userPlan} atingiu o limite diário de mensagens.`,
       });
       return;
     }
@@ -267,15 +267,13 @@ export default function PetChatPage() {
 
     const messagesRef = collection(db, 'users', user.uid, 'pets', petId, 'chatMessages');
 
-    const userMessageData = {
-      role: 'user' as const,
-      text: userText,
-      photoURL: currentPhoto,
-      timestamp: serverTimestamp(),
-    };
-
     try {
-      await addDoc(messagesRef, userMessageData);
+      await addDoc(messagesRef, {
+        role: 'user' as const,
+        text: userText,
+        photoURL: currentPhoto,
+        timestamp: serverTimestamp(),
+      });
 
       if (userRef) {
         const today = new Date().toISOString().split('T')[0];
@@ -301,13 +299,11 @@ export default function PetChatPage() {
         photoDataUri: currentPhoto || undefined
       });
 
-      const modelMessageData = {
+      await addDoc(messagesRef, {
         role: 'model' as const,
         text: response.text,
         timestamp: serverTimestamp(),
-      };
-
-      await addDoc(messagesRef, modelMessageData);
+      });
 
     } catch (error) {
       console.error('Erro no processamento:', error);
@@ -351,7 +347,6 @@ export default function PetChatPage() {
       <Header />
 
       <main className="flex-1 flex flex-col w-full max-w-5xl mx-auto overflow-hidden relative">
-        {/* Header de Info do Pet */}
         <div className="flex items-center justify-between p-3 md:p-4 bg-black/40 backdrop-blur-md border-b border-white/5 z-20">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" onClick={() => router.push('/')} className="h-8 w-8 text-white/70 hover:text-white shrink-0">
@@ -378,11 +373,18 @@ export default function PetChatPage() {
               variant="secondary" 
               className={cn(
                 "bg-primary/10 text-primary border-none text-[9px] md:text-[10px] font-bold py-1 md:py-1.5 px-2 md:px-3 flex items-center gap-1.5 transition-all shrink-0",
-                isLimitReached && "bg-destructive/10 text-destructive"
+                isLimitReached && "bg-destructive/10 text-destructive",
+                isPro && "bg-amber-500/10 text-amber-500"
               )}
              >
                 <Sparkles className="h-3 w-3 md:h-3.5 md:w-3.5 fill-current" />
-                <span className="uppercase tracking-wider">{messagesRemaining}/{DAILY_LIMIT}</span>
+                <span className="uppercase tracking-wider">
+                  {isPro ? (
+                    <span className="flex items-center gap-1">ILIMITADO <InfinityIcon className="h-3 w-3" /></span>
+                  ) : (
+                    `${messagesRemaining}/${dailyLimit}`
+                  )}
+                </span>
              </Badge>
              
              <AlertDialog>
@@ -417,7 +419,6 @@ export default function PetChatPage() {
           </div>
         </div>
 
-        {/* Área de Mensagens */}
         <div 
           ref={scrollRef}
           className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 md:space-y-10 bg-black no-scrollbar overscroll-contain"
@@ -502,7 +503,6 @@ export default function PetChatPage() {
           )}
         </div>
 
-        {/* Preview de Imagem Pendente */}
         {pendingImage && (
           <div className="px-4 py-3 bg-black/90 backdrop-blur-lg border-t border-white/5 flex items-center gap-4 animate-in slide-in-from-bottom-4">
             <div className="relative h-16 w-16 md:h-20 md:w-20 rounded-xl overflow-hidden border-2 border-primary/30 shadow-2xl shrink-0">
@@ -518,7 +518,6 @@ export default function PetChatPage() {
           </div>
         )}
 
-        {/* Input Bar */}
         <div className="p-3 md:p-6 bg-transparent">
           <form onSubmit={handleSendMessage} className="flex gap-2 md:gap-3 max-w-4xl mx-auto items-center bg-white/[0.05] border border-white/10 p-1.5 md:p-3 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl">
             <input 
