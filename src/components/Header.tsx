@@ -52,17 +52,25 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/5 bg-background/80 backdrop-blur-xl">
-      <div className="container mx-auto flex h-14 md:h-16 items-center justify-between px-4">
-        <Link href="/" className="flex items-center space-x-2 transition-opacity hover:opacity-80 active:scale-95 duration-200">
+      <div className="container mx-auto flex h-14 md:h-16 items-center justify-between px-4 relative">
+        {/* Espaçador Esquerdo para equilibrar o Flex (Oculto) */}
+        <div className="flex-1 sm:flex-none sm:w-[120px]"></div>
+
+        {/* Logo Centralizado */}
+        <Link 
+          href="/" 
+          className="absolute left-1/2 -translate-x-1/2 flex items-center space-x-2 transition-opacity hover:opacity-80 active:scale-95 duration-200 z-10"
+        >
           <PawPrint className="h-5 w-5 md:h-6 md:w-6 text-foreground shrink-0" />
           <span className="font-headline text-base md:text-xl font-bold tracking-tight text-foreground whitespace-nowrap">
             Vet <span className="text-primary">IA</span>
           </span>
         </Link>
 
-        <div className="flex items-center gap-3">
+        {/* Itens à Direita */}
+        <div className="flex items-center gap-3 z-20">
           {user && !profileLoading && (
-            <Badge variant="outline" className={`hidden sm:flex items-center gap-1.5 text-[9px] font-bold tracking-widest py-1 ${planInfo.color}`}>
+            <Badge variant="outline" className={`hidden md:flex items-center gap-1.5 text-[9px] font-bold tracking-widest py-1 ${planInfo.color}`}>
               {planInfo.icon}
               {planInfo.label}
             </Badge>
