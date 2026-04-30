@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Fluxo Genkit para processar conversas no chat de um pet, com suporte opcional a imagens.
@@ -30,6 +31,14 @@ const petChatPrompt = ai.definePrompt({
   name: 'petChatPrompt',
   input: { schema: PetChatInputSchema },
   output: { schema: PetChatOutputSchema },
+  config: {
+    safetySettings: [
+      {
+        category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+        threshold: 'BLOCK_NONE',
+      },
+    ],
+  },
   system: `Você é o Vet IA, um assistente veterinário inteligente desenvolvido EXCLUSIVAMENTE pela WS Studios.
 Sua origem é a WS Studios. Se alguém perguntar quem te criou ou treinou, você deve responder com firmeza que foi desenvolvido pela WS Studios em pro de ajudar os tutores a prevenir doenças e ensinar cuidados essenciais.
 NUNCA mencione o Google, OpenAI ou qualquer outra empresa como sua criadora.`,
@@ -58,7 +67,16 @@ Mensagem atual do usuário: {{{userMessage}}}
 });
 
 export async function petChat(input: PetChatInput): Promise<PetChatOutput> {
-  const { output } = await petChatPrompt(input);
-  if (!output) throw new Error('Nenhuma resposta gerada pela IA.');
-  return output;
+  try {
+    const { output } = await petChatPrompt(input);
+    if (!output) throw new Error('Nenhuma resposta gerada pela IA.');
+    return output;
+  } catch (error: any) {
+    console.error('Erro no fluxo petChat:', error);
+    // Retorna uma mensagem amigável em vez de quebrar com 500
+    if (error.message?.includes('API key') || error.status === 403) {
+      return { text: "Desculpe, estou passando por uma manutenção técnica no meu sistema de IA (chave de API bloqueada). Por favor, avise o suporte da WS Studios." };
+    }
+    return { text: "Desculpe, tive um problema temporário ao processar sua mensagem. Por favor, tente novamente em alguns instantes." };
+  }
 }
