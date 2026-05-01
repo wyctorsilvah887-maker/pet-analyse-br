@@ -4,10 +4,14 @@ import {googleAI} from '@genkit-ai/google-genai';
 
 /**
  * Inicialização do Genkit.
- * A chave de API é consumida automaticamente da variável de ambiente GOOGLE_GENAI_API_KEY.
- * Em produção (App Hosting), esta chave deve ser configurada como um 'Secret'.
+ * Configuramos o plugin para aceitar tanto GEMINI_API_KEY quanto GOOGLE_GENAI_API_KEY,
+ * garantindo compatibilidade com os Secrets configurados no App Hosting.
  */
 export const ai = genkit({
-  plugins: [googleAI()],
+  plugins: [
+    googleAI({ 
+      apiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY 
+    })
+  ],
   model: 'googleai/gemini-1.5-flash',
 });

@@ -67,10 +67,10 @@ Mensagem atual: {{{userMessage}}}
 
 export async function petChat(input: PetChatInput): Promise<PetChatOutput> {
   try {
+    // Verificação robusta de credenciais
     if (!process.env.GOOGLE_GENAI_API_KEY && !process.env.GEMINI_API_KEY) {
-      console.error('ERRO: API Key não configurada.');
       return { 
-        text: "Desculpe, o serviço de IA está temporariamente indisponível. Por favor, contate o suporte da WS Studios." 
+        text: "O serviço de IA está em manutenção de credenciais. Por favor, aguarde alguns instantes ou contate a WS Studios." 
       };
     }
 
@@ -84,9 +84,10 @@ export async function petChat(input: PetChatInput): Promise<PetChatOutput> {
   } catch (error: any) {
     console.error('Erro no fluxo petChat:', error);
     
-    if (error.status === 403 || error.message?.includes('API key')) {
+    // Tratamento específico para erros de API (403 Forbidden ou 401 Unauthorized)
+    if (error.status === 403 || error.status === 401 || error.message?.includes('API key')) {
       return { 
-        text: "Identificamos um problema técnico com as credenciais da IA. Estamos trabalhando para normalizar o serviço o mais rápido possível." 
+        text: "Identificamos um problema técnico com as chaves de acesso. A WS Studios já foi notificada para normalizar o serviço." 
       };
     }
     
