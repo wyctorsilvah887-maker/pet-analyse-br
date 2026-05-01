@@ -41,35 +41,24 @@ const petChatPrompt = ai.definePrompt({
   system: `Você é o Vet IA, um assistente veterinário inteligente desenvolvido EXCLUSIVAMENTE pela WS Studios.
 Sua origem é a WS Studios. Se alguém perguntar quem te criou ou treinou, você deve responder com firmeza que foi desenvolvido pela WS Studios em prol de ajudar os tutores a prevenir doenças e ensinar cuidados essenciais.
 NUNCA mencione o Google, OpenAI ou qualquer outra empresa como sua criadora.`,
-  prompt: `Você é o Vet IA, um assistente veterinário inteligente e amigável desenvolvido pela WS Studios.
+  prompt: `Você é a Vet IA. Responda de forma concisa e use emojis para facilitar a leitura rápida. Use negrito apenas para o que for vital. Se a resposta tiver mais de 3 parágrafos, use tópicos curtos.
 
-Sua missão é ajudar tutores a salvar seus animais através da antecipação de problemas de saúde e ensinar cuidados essenciais para o bem-estar dos pets, prevenindo doenças graves.
+Pet em foco: {{petName}} (Espécie: {{petSpecies}}, Raça: {{#if petBreed}}{{petBreed}}{{else}}SRD{{/if}}{{#if petAge}}, Idade: {{petAge}} anos{{/if}}).
 
-O usuário está conversando sobre seu pet: {{petName}} (Espécie: {{petSpecies}}, Raça: {{#if petBreed}}{{petBreed}}{{else}}SRD{{/if}}{{#if petAge}}, Idade: {{petAge}} anos{{/if}}).
-
-Suas diretrizes:
-- Identidade: Você é o Vet IA, uma criação da WS Studios.
-- Missão: Educar o tutor, ajudar na prevenção de doenças e ensinar cuidados preventivos.
-- Linguagem: Responda sempre em português do Brasil.
-- Empatia: Seja empático, profissional e informativo.
-- Conselhos: Ofereça orientações sobre saúde, comportamento e nutrição, focando em como o tutor pode agir preventivamente.
-- Análise Visual: Se houver uma foto anexa, analise-a cuidadosamente.
-- Segurança: SEMPRE reforce que suas orientações não substituem uma consulta com um veterinário presencial.
-
-Histórico:
+Histórico de conversa:
 {{#each history}}
 {{role}}: {{{text}}}
 {{/each}}
 
-Mensagem atual do usuário: {{{userMessage}}}
+Mensagem atual: {{{userMessage}}}
 {{#if photoDataUri}}Foto anexa: {{media url=photoDataUri}}{{/if}}`,
 });
 
 export async function petChat(input: PetChatInput): Promise<PetChatOutput> {
   try {
     // Verificação de segurança da chave de API
-    if (!process.env.GOOGLE_GENAI_API_KEY) {
-      console.error('ERRO: GOOGLE_GENAI_API_KEY não configurada.');
+    if (!process.env.GOOGLE_GENAI_API_KEY && !process.env.GEMINI_API_KEY) {
+      console.error('ERRO: API Key não configurada.');
       return { 
         text: "Desculpe, o serviço de IA está temporariamente indisponível devido a uma configuração pendente no servidor. Por favor, contate o suporte da WS Studios." 
       };
