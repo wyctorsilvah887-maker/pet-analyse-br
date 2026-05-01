@@ -26,7 +26,10 @@ import {
   PawPrint, 
   Bot, 
   User as UserIcon, 
-  Image as ImageIcon,
+  AlertCircle, 
+  Paperclip, 
+  Camera, 
+  ImageIcon,
   X,
   Trash2
 } from 'lucide-react';
@@ -249,21 +252,30 @@ export default function PetChatPage() {
     <div className="flex flex-col h-screen h-[100dvh] bg-black overflow-hidden">
       <Header />
 
-      <main className="flex-1 flex flex-col w-full max-w-5xl mx-auto overflow-hidden">
-        {/* Header do Chat */}
-        <div className="flex items-center justify-between p-3 border-b border-white/5 bg-black/40 backdrop-blur-md z-20">
-          <div className="flex items-center gap-3 min-w-0">
-            <Button variant="ghost" size="icon" onClick={() => router.push('/')} className="text-white/70">
-              <ArrowLeft className="h-5 w-5" />
+      <main className="flex-1 flex flex-col w-full max-w-5xl mx-auto overflow-hidden relative">
+        <div className="flex items-center justify-between p-2 md:p-3 bg-black/40 backdrop-blur-md border-b border-white/5 z-20">
+          <div className="flex items-center gap-1.5 md:gap-3 min-w-0">
+            <Button variant="ghost" size="icon" onClick={() => router.push('/')} className="h-7 w-7 md:h-8 md:w-8 text-white/70 hover:text-white shrink-0">
+              <ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
             </Button>
-            <div className="flex items-center gap-2 min-w-0">
-              <Avatar className="h-8 w-8 md:h-10 md:w-10 border border-primary/20">
-                <AvatarImage src={pet?.photoURL} className="object-cover" />
-                <AvatarFallback className="bg-muted"><PawPrint className="h-4 w-4 text-primary" /></AvatarFallback>
+            <div className="flex items-center gap-1.5 md:gap-2.5 min-w-0">
+              <Avatar className="h-7 w-7 md:h-9 md:w-9 border-2 border-primary/20 ring-2 ring-black shrink-0">
+                <AvatarImage src={pet.photoURL} alt={pet.name} className="object-cover" />
+                <AvatarFallback className="bg-muted">
+                  <PawPrint className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+                </AvatarFallback>
               </Avatar>
               <div className="flex flex-col min-w-0">
-                <h1 className="font-bold text-sm text-primary leading-none uppercase truncate">{pet?.name}</h1>
-                <p className="text-[9px] text-white/40 font-bold tracking-widest mt-1">IA PREVENTIVA • WS STUDIOS</p>
+                <div className="flex items-center gap-1 min-w-0">
+                  <h1 className="font-bold text-[10px] md:text-sm text-primary leading-tight truncate">{pet.name.toLowerCase()}</h1>
+                </div>
+                <p className="text-[7px] md:text-[9px] text-white/40 uppercase font-bold tracking-[0.1em] truncate">
+                  {pet.species} • {pet.breed || 'SRD'} {pet.age ? `• ${pet.age} anos` : ''}
+                </p>
+                <div className="flex items-center gap-1 opacity-40 mt-0.5">
+                  <PawPrint className="h-1.5 w-1.5 text-primary" />
+                  <span className="text-[5px] md:text-[7px] uppercase font-bold tracking-[0.1em] text-white">IA PREVENTIVA • WS STUDIOS</span>
+                </div>
               </div>
             </div>
           </div>
@@ -278,21 +290,26 @@ export default function PetChatPage() {
           </div>
         </div>
 
-        {/* Área de Mensagens */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-6 no-scrollbar relative">
-          <div className="absolute inset-0 flex items-center justify-center opacity-[0.01] pointer-events-none select-none">
-             <PawPrint className="h-64 w-64 text-white" />
+        <div 
+          ref={scrollRef}
+          className="flex-1 overflow-y-auto p-2 md:p-8 space-y-4 md:space-y-10 bg-black no-scrollbar overscroll-contain relative"
+        >
+          <div className="fixed inset-0 flex items-center justify-center opacity-[0.02] pointer-events-none select-none z-0">
+             <div className="flex flex-col items-center rotate-[-15deg]">
+               <PawPrint className="h-40 w-40 md:h-64 md:w-64 text-white" />
+               <span className="font-headline text-4xl md:text-6xl font-black uppercase tracking-[0.5em] text-white">Vet IA</span>
+             </div>
           </div>
 
           {messages.map((msg: any, idx) => (
             <div key={msg.id || idx} className={cn("flex items-start gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300", msg.role === 'user' ? "flex-row-reverse" : "flex-row")}>
               <div className={cn(
-                "flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center transition-all",
+                "flex-shrink-0 h-8 w-8 md:h-10 md:w-10 rounded-full flex items-center justify-center border transition-all",
                 msg.role === 'user' 
-                  ? "bg-primary text-primary-foreground ring-2 ring-primary/40 shadow-[0_0_10px_rgba(var(--primary),0.2)]" 
-                  : "bg-white/5 border border-white/10 text-primary"
+                  ? "bg-primary border-primary/60 text-primary-foreground shadow-[0_0_15px_rgba(var(--primary),0.4)] ring-2 ring-black/20" 
+                  : "bg-black border-white/10 text-primary"
               )}>
-                {msg.role === 'user' ? <UserIcon className="h-4 w-4 stroke-[2.5]" /> : <Bot className="h-4 w-4" />}
+                {msg.role === 'user' ? <UserIcon className="h-4 w-4 md:h-5 md:w-5 stroke-[3]" /> : <Bot className="h-3.5 w-3.5 md:h-4 md:w-4" />}
               </div>
               
               <div className={cn(
@@ -338,8 +355,10 @@ export default function PetChatPage() {
               <Send className="h-4 w-4" />
             </Button>
           </form>
-          <div className="flex flex-col items-center mt-3 mb-1">
-             <p className="text-[8px] text-white/10 uppercase font-bold tracking-[0.2em] text-center px-4">Versão 2.5 • WS Studios • Tecnologia Preventiva</p>
+          <div className="flex flex-col items-center mt-2 md:mt-4 pointer-events-none">
+             <p className="text-[6px] md:text-[8px] text-white/10 uppercase font-bold tracking-[0.15em] mt-1 text-center px-4">
+               Versão 2.5 • Antiviral & Preventive Tech
+             </p>
           </div>
         </div>
       </main>
