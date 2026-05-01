@@ -28,7 +28,7 @@ import {
   AlertCircle, 
   Paperclip, 
   Camera, 
-  Image as ImageIcon,
+  ImageIcon,
   X,
   History,
   Trash2,
@@ -426,7 +426,6 @@ export default function PetChatPage() {
           ref={scrollRef}
           className="flex-1 overflow-y-auto p-2 md:p-8 space-y-4 md:space-y-10 bg-black no-scrollbar overscroll-contain relative"
         >
-          {/* Marca d'água discreta de fundo para prints */}
           <div className="fixed inset-0 flex items-center justify-center opacity-[0.02] pointer-events-none select-none z-0">
              <div className="flex flex-col items-center rotate-[-15deg]">
                <PawPrint className="h-40 w-40 md:h-64 md:w-64 text-white" />
@@ -469,12 +468,12 @@ export default function PetChatPage() {
               )}
             >
               <div className={cn(
-                "flex-shrink-0 h-7 w-7 md:h-9 md:w-9 rounded-full flex items-center justify-center border transition-all",
+                "flex-shrink-0 h-8 w-8 md:h-10 md:w-10 rounded-full flex items-center justify-center border transition-all",
                 msg.role === 'user' 
-                  ? "bg-primary border-primary/40 text-primary-foreground shadow-[0_4px_10px_rgba(0,0,0,0.35)] ring-1 ring-black/5" 
+                  ? "bg-primary border-primary/60 text-primary-foreground shadow-[0_0_15px_rgba(var(--primary),0.4)] ring-2 ring-black/20" 
                   : "bg-black border-white/10 text-primary"
               )}>
-                {msg.role === 'user' ? <UserIcon className="h-3.5 w-3.5 md:h-4 md:w-4 stroke-[2.5]" /> : <Bot className="h-3.5 w-3.5 md:h-4 md:w-4" />}
+                {msg.role === 'user' ? <UserIcon className="h-4 w-4 md:h-5 md:w-5 stroke-[3]" /> : <Bot className="h-3.5 w-3.5 md:h-4 md:w-4" />}
               </div>
               
               <div className={cn(
