@@ -347,21 +347,23 @@ export default function PetChatPage() {
 
       <main className="flex-1 flex flex-col w-full max-w-5xl mx-auto overflow-hidden relative">
         <div className="flex items-center justify-between p-2 md:p-3 bg-black/40 backdrop-blur-md border-b border-white/5 z-20">
-          <div className="flex items-center gap-1.5 md:gap-3">
+          <div className="flex items-center gap-1.5 md:gap-3 min-w-0">
             <Button variant="ghost" size="icon" onClick={() => router.push('/')} className="h-7 w-7 md:h-8 md:w-8 text-white/70 hover:text-white shrink-0">
               <ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
             </Button>
             <div className="flex items-center gap-1.5 md:gap-2.5 min-w-0">
-              <Avatar className="h-8 w-8 md:h-10 md:w-10 border-2 border-primary/20 ring-2 ring-black shrink-0">
+              <Avatar className="h-7 w-7 md:h-9 md:w-9 border-2 border-primary/20 ring-2 ring-black shrink-0">
                 <AvatarImage src={pet.photoURL} alt={pet.name} className="object-cover" />
                 <AvatarFallback className="bg-muted">
                   <PawPrint className="h-4 w-4 md:h-5 md:w-5 text-primary" />
                 </AvatarFallback>
               </Avatar>
               <div className="flex flex-col min-w-0">
-                <h1 className="font-bold text-[10px] md:text-sm text-primary leading-tight truncate">{pet.name.toLowerCase()}</h1>
-                <p className="text-[7px] md:text-[10px] text-white/40 uppercase font-bold tracking-[0.2em] truncate">
-                  {pet.species} • {pet.breed || 'SRD'}
+                <div className="flex items-center gap-1 min-w-0">
+                  <h1 className="font-bold text-[10px] md:text-sm text-primary leading-tight truncate">{pet.name.toLowerCase()}</h1>
+                </div>
+                <p className="text-[7px] md:text-[9px] text-white/40 uppercase font-bold tracking-[0.1em] truncate">
+                  {pet.species} • {pet.breed || 'SRD'} {pet.age ? `• ${pet.age} anos` : ''}
                 </p>
                 <div className="flex items-center gap-1 opacity-40 mt-0.5">
                   <PawPrint className="h-1.5 w-1.5 text-primary" />
@@ -585,7 +587,9 @@ export default function PetChatPage() {
             </Button>
           </form>
           <div className="flex flex-col items-center mt-2 md:mt-4 pointer-events-none">
-             <p className="text-[5px] md:text-[6px] text-white/5 uppercase font-bold tracking-[0.4em] mt-1">Versão 2.5 • Antiviral & Preventive Tech</p>
+             <p className="text-[6px] md:text-[8px] text-white/10 uppercase font-bold tracking-[0.15em] mt-1 text-center px-4">
+               Versão 2.5 • Antiviral & Preventive Tech
+             </p>
           </div>
         </div>
       </main>
