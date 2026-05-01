@@ -31,6 +31,8 @@ const petChatPrompt = ai.definePrompt({
   input: { schema: PetChatInputSchema },
   output: { schema: PetChatOutputSchema },
   config: {
+    maxOutputTokens: 2048,
+    temperature: 0.7,
     safetySettings: [
       {
         category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
