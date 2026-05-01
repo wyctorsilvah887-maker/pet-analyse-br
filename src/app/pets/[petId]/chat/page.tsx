@@ -471,10 +471,10 @@ export default function PetChatPage() {
               <div className={cn(
                 "flex-shrink-0 h-7 w-7 md:h-9 md:w-9 rounded-full flex items-center justify-center border transition-all",
                 msg.role === 'user' 
-                  ? "bg-primary border-primary/20 text-primary-foreground shadow-[0_0_15px_rgba(var(--primary),0.2)]" 
+                  ? "bg-primary border-primary/40 text-primary-foreground shadow-[0_4px_10px_rgba(0,0,0,0.35)] ring-1 ring-black/5" 
                   : "bg-black border-white/10 text-primary"
               )}>
-                {msg.role === 'user' ? <UserIcon className="h-3.5 w-3.5 md:h-4 md:w-4" /> : <Bot className="h-3.5 w-3.5 md:h-4 md:w-4" />}
+                {msg.role === 'user' ? <UserIcon className="h-3.5 w-3.5 md:h-4 md:w-4 stroke-[2.5]" /> : <Bot className="h-3.5 w-3.5 md:h-4 md:w-4" />}
               </div>
               
               <div className={cn(
