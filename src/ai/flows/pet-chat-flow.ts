@@ -40,23 +40,23 @@ const petChatPrompt = ai.definePrompt({
       },
     ],
   },
-  system: `Você é o Vet IA, um assistente veterinário inteligente desenvolvido EXCLUSIVAMENTE pela WS Studios.
-Sua origem é a WS Studios. Se alguém perguntar quem te criou ou treinou, você deve responder com firmeza que foi desenvolvido pela WS Studios em prol de ajudar os tutores a prevenir doenças e ensinar cuidados essenciais.
-NUNCA mencione o Google, OpenAI ou qualquer outra empresa como sua criadora.`,
-  prompt: `Você é a Vet IA. Responda de forma concisa e use emojis para facilitar a leitura rápida. Use negrito apenas para o que for vital. 
+  system: `Você é o Vet IA, assistente veterinário da WS Studios. 
+Sua regra de ouro é: SEJA EXTREMAMENTE CURTO E DIRETO. 
+NUNCA mencione outras empresas (Google, OpenAI). Sua origem é exclusivamente a WS Studios.
+Evite parágrafos longos. Vá direto ao ponto com o máximo de economia de palavras.`,
+  prompt: `Você é a Vet IA. Responda de forma ultra-concisa. Use emojis para leitura rápida. Use negrito apenas para o que for vital.
 
-Siga este estilo de resposta:
-- Comece com uma afirmação direta e amigável (ex: "Sim, você pode dar carne para a {{petName}}! 🍖").
-- Se houver riscos, liste-os em tópicos curtos começando com uma frase de transição (ex: "Mas siga estas regras de segurança:").
-- Use tópicos curtos e diretos para instruções.
-- Termine com uma pergunta de engajamento (ex: "Faz sentido para você?").
+Siga rigorosamente este estilo de resposta curta:
+- Comece com uma afirmação direta e amigável (ex: "Sim, pode dar carne para a {{petName}}! 🍖").
+- Se houver riscos, use uma frase curta de transição e liste apenas o essencial em tópicos de no máximo uma linha.
+- Termine com uma pergunta de engajamento curta.
 
-REGRA DE SEGURANÇA CRÍTICA:
-Sempre que o usuário mencionar sintomas, doenças ou situações de mal-estar, você DEVE incluir uma recomendação clara para consultar um médico veterinário presencialmente. Isso é vital para a segurança jurídica da WS Studios e a saúde do animal.
+REGRA DE SEGURANÇA:
+Se o usuário mencionar sintomas ou mal-estar, inclua obrigatoriamente: "Consulte um veterinário presencialmente para segurança."
 
-Pet em foco: {{petName}} (Espécie: {{petSpecies}}, Raça: {{#if petBreed}}{{petBreed}}{{else}}SRD{{/if}}{{#if petAge}}, Idade: {{petAge}} anos{{/if}}).
+Pet em foco: {{petName}} ({{petSpecies}}, {{#if petBreed}}{{petBreed}}{{else}}SRD{{/if}}{{#if petAge}}, {{petAge}} anos{{/if}}).
 
-Histórico de conversa:
+Histórico:
 {{#each history}}
 {{role}}: {{{text}}}
 {{/each}}
@@ -67,11 +67,10 @@ Mensagem atual: {{{userMessage}}}
 
 export async function petChat(input: PetChatInput): Promise<PetChatOutput> {
   try {
-    // Verificação de segurança da chave de API
     if (!process.env.GOOGLE_GENAI_API_KEY && !process.env.GEMINI_API_KEY) {
       console.error('ERRO: API Key não configurada.');
       return { 
-        text: "Desculpe, o serviço de IA está temporariamente indisponível devido a uma configuração pendente no servidor. Por favor, contate o suporte da WS Studios." 
+        text: "Desculpe, o serviço de IA está temporariamente indisponível. Por favor, contate o suporte da WS Studios." 
       };
     }
 
@@ -85,7 +84,6 @@ export async function petChat(input: PetChatInput): Promise<PetChatOutput> {
   } catch (error: any) {
     console.error('Erro no fluxo petChat:', error);
     
-    // Tratamento de erro específico para chave inválida ou expirada
     if (error.status === 403 || error.message?.includes('API key')) {
       return { 
         text: "Identificamos um problema técnico com as credenciais da IA. Estamos trabalhando para normalizar o serviço o mais rápido possível." 
@@ -93,7 +91,7 @@ export async function petChat(input: PetChatInput): Promise<PetChatOutput> {
     }
     
     return { 
-      text: "Tive um problema momentâneo ao processar sua mensagem. Poderia tentar novamente em alguns segundos?" 
+      text: "Tive um problema momentâneo ao processar sua mensagem. Poderia tentar novamente?" 
     };
   }
 }
