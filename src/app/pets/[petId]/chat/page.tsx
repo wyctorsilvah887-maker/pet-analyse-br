@@ -69,7 +69,6 @@ const compressImage = (dataUrl: string, maxWidth = 1000, maxHeight = 1000, quali
 
 const renderMessageText = (text: string) => {
   if (!text) return null;
-  // Suporte a texto entre asteriscos para negrito
   const parts = text.split(/(\*.*?\*)/g);
   return parts.map((part, i) => {
     if (part.startsWith('*') && part.endsWith('*')) {
@@ -322,7 +321,6 @@ export default function PetChatPage() {
           )}
         </div>
 
-        {/* Input */}
         <div className="p-4 bg-transparent border-t border-white/5">
           {pendingImage && (
             <div className="mb-2 p-2 bg-white/5 rounded-xl flex items-center gap-2 animate-in zoom-in-95 border border-white/5">
