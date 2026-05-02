@@ -94,19 +94,16 @@ export default function PetChatPage() {
   const [pendingImage, setPendingImage] = useState<string | null>(null);
   const [messageLimit] = useState(15);
 
-  const userRef = useMemo(() => (user && db ? doc(db, 'users', user.uid) : null), [user, db]);
-  const { data: profile } = useDoc(userRef);
-
-  const threshold48h = useMemo(() => {
-    return Timestamp.fromDate(new Date(Date.now() - 48 * 60 * 60 * 1000));
-  }, []);
-
   const petRef = useMemo(() => {
     if (!user || !db || !petId) return null;
     return doc(db, 'users', user.uid, 'pets', petId);
   }, [user, db, petId]);
   
   const { data: pet, loading: petLoading } = useDoc(petRef);
+
+  const threshold48h = useMemo(() => {
+    return Timestamp.fromDate(new Date(Date.now() - 48 * 60 * 60 * 1000));
+  }, []);
 
   const messagesQuery = useMemo(() => {
     if (!user || !db || !petId || !pet) return null;
@@ -218,7 +215,7 @@ export default function PetChatPage() {
     }
   };
 
-  if (petLoading || (messagesLoading && messages.length === 0)) {
+  if (petLoading) {
     return (
       <div className="flex h-screen bg-black items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -226,12 +223,12 @@ export default function PetChatPage() {
     );
   }
 
-  if (!pet) {
+  if (!pet && !petLoading) {
     return (
       <div className="flex h-screen bg-black flex-col items-center justify-center p-4 text-center">
         <AlertCircle className="h-10 w-10 text-destructive mb-4" />
         <h2 className="text-white font-bold mb-2">Pet não encontrado</h2>
-        <p className="text-white/60 text-sm mb-6 max-w-xs">Não conseguimos localizar os dados deste pet. Verifique se ele ainda está cadastrado.</p>
+        <p className="text-white/60 text-sm mb-6 max-w-xs">Não conseguimos localizar os dados deste pet.</p>
         <Button onClick={() => router.push('/')} variant="outline" className="rounded-full px-8">Voltar para Início</Button>
       </div>
     );
@@ -261,17 +258,13 @@ export default function PetChatPage() {
                 <p className="text-[7px] md:text-[9px] text-white/40 uppercase font-bold tracking-[0.1em] truncate">
                   {pet?.species} • {pet?.breed || 'SRD'} {pet?.age ? `• ${pet.age} anos` : ''}
                 </p>
-                <div className="flex items-center gap-1 opacity-40 mt-0.5">
-                  <PawPrint className="h-1.5 w-1.5 text-primary" />
-                  <span className="text-[5px] md:text-[7px] uppercase font-bold tracking-[0.1em] text-white">IA PREVENTIVA • WS STUDIOS</span>
-                </div>
               </div>
             </div>
           </div>
           
           <div className="flex items-center gap-2">
-             <Button variant="ghost" size="icon" onClick={handleClearChat} className="text-white/30 hover:text-destructive h-8 w-8">
-                <Trash2 className="h-4 w-4" />
+             <Button variant="ghost" size="icon" onClick={handleClearChat} className="text-white/30 hover:text-destructive h-8 w-8" disabled={isDeleting}>
+                {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
              </Button>
           </div>
         </div>
@@ -326,13 +319,6 @@ export default function PetChatPage() {
               </div>
             </div>
           )}
-
-          <div className="pt-8 pb-4 flex items-center justify-center opacity-20 relative z-10">
-            <div className="flex items-center gap-2 border border-white/10 px-3 py-1.5 rounded-full">
-              <PawPrint className="h-3 w-3 text-primary" />
-              <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white">IA PREVENTIVA • WS STUDIOS</span>
-            </div>
-          </div>
         </div>
 
         {/* Input */}
@@ -362,11 +348,6 @@ export default function PetChatPage() {
               <Send className="h-4 w-4" />
             </Button>
           </form>
-          <div className="flex flex-col items-center mt-2 md:mt-4 pointer-events-none">
-             <p className="text-[6px] md:text-[8px] text-white/10 uppercase font-bold tracking-[0.15em] mt-1 text-center px-4">
-               Versão 2.5 • Antiviral & Preventive Tech
-             </p>
-          </div>
         </div>
       </main>
     </div>
