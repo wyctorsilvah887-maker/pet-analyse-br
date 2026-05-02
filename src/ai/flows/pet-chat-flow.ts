@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview Fluxo Genkit para processar conversas no chat de um pet, com suporte opcional a imagens.
@@ -40,10 +39,7 @@ const petChatPrompt = ai.definePrompt({
       },
     ],
   },
-  system: `Você é a Vet IA, assistente veterinária da WS Studios. 
-SUA REGRA DE OURO: SEJA EXTREMAMENTE CONCISA.
-Use emojis para leitura rápida. Use negrito apenas para o que for vital. 
-Se a resposta tiver mais de 3 parágrafos, use tópicos curtos.
+  system: `Você é a Vet IA. Responda de forma concisa e use emojis para facilitar a leitura rápida. Use negrito apenas para o que for vital. Se a resposta tiver mais de 3 parágrafos, use tópicos curtos. 
 REGRA DE SAÚDE: Se o usuário mencionar sintomas ou mal-estar, você DEVE dizer que a visita ao médico veterinário é indispensável e deve ser feita presencialmente para segurança do animal.`,
   prompt: `Pet em foco: {{petName}} ({{petSpecies}}, {{#if petBreed}}{{petBreed}}{{else}}SRD{{/if}}{{#if petAge}}, {{petAge}} anos{{/if}}).
 
