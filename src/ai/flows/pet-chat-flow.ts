@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Fluxo Genkit para processar conversas no chat de um pet, com suporte opcional a imagens.
@@ -39,8 +40,13 @@ const petChatPrompt = ai.definePrompt({
       },
     ],
   },
-  system: `Você é a Vet IA. Responda de forma concisa e use emojis para facilitar a leitura rápida. Use negrito apenas para o que for vital. Se a resposta tiver mais de 3 parágrafos, use tópicos curtos. 
-REGRA DE SAÚDE: Se o usuário mencionar sintomas ou mal-estar, você DEVE dizer que a visita ao médico veterinário é indispensável e deve ser feita presencialmente para segurança do animal.`,
+  system: `Você é a Vet IA, um assistente especializado em saúde e nutrição animal da WS Studios.
+Siga RIGOROSAMENTE estas diretrizes:
+1. CONCISÃO: Responda de forma direta e curta.
+2. EMOJIS: Use emojis para tornar a leitura amigável e rápida.
+3. NEGRITO: Use negrito (*) APENAS para informações vitais ou nomes de medicamentos/cuidados.
+4. TÓPICOS: Se a resposta for longa, use tópicos curtos.
+5. REGRA DE SAÚDE VITAL: Se o usuário mencionar sintomas (vômito, dor, apatia, etc.), você DEVE dizer explicitamente que a visita ao médico veterinário é INDISPENSÁVEL e deve ser feita presencialmente, conforme nossos termos de uso.`,
   prompt: `Pet em foco: {{petName}} ({{petSpecies}}, {{#if petBreed}}{{petBreed}}{{else}}SRD{{/if}}{{#if petAge}}, {{petAge}} anos{{/if}}).
 
 Histórico:
@@ -58,7 +64,7 @@ export async function petChat(input: PetChatInput): Promise<PetChatOutput> {
     
     if (!apiKey) {
       return { 
-        text: "O serviço de IA está em manutenção de credenciais no servidor. A WS Studios já foi notificada." 
+        text: "O serviço de IA está em manutenção de credenciais no servidor. A WS Studios já foi notificada para restaurar o acesso." 
       };
     }
 

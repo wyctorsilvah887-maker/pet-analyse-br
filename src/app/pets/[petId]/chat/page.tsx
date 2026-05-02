@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect, useRef } from 'react';
@@ -68,10 +69,11 @@ const compressImage = (dataUrl: string, maxWidth = 1000, maxHeight = 1000, quali
 
 const renderMessageText = (text: string) => {
   if (!text) return null;
+  // Suporte a texto entre asteriscos para negrito
   const parts = text.split(/(\*.*?\*)/g);
   return parts.map((part, i) => {
     if (part.startsWith('*') && part.endsWith('*')) {
-      return <strong key={i} className="font-bold">{part.slice(1, -1)}</strong>;
+      return <strong key={i} className="font-bold text-foreground">{part.slice(1, -1)}</strong>;
     }
     return part;
   });
@@ -91,7 +93,7 @@ export default function PetChatPage() {
   const [isSending, setIsSending] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [pendingImage, setPendingImage] = useState<string | null>(null);
-  const [messageLimit] = useState(15);
+  const [messageLimit] = useState(20);
 
   const petRef = useMemo(() => {
     if (!user || !db || !petId) return null;
@@ -161,7 +163,7 @@ export default function PetChatPage() {
     setIsDeleting(true);
     try {
       await updateDoc(petRef, { chatClearedAt: serverTimestamp() });
-      toast({ title: "Chat limpo" });
+      toast({ title: "Histórico limpo com sucesso." });
     } catch (error) {
       console.error(error);
     } finally {
@@ -173,7 +175,7 @@ export default function PetChatPage() {
     e.preventDefault();
     if ((!input.trim() && !pendingImage) || !user || !pet || isSending) return;
 
-    const userText = input || "Enviei uma foto para análise.";
+    const userText = input || "Analise esta imagem para mim.";
     const currentPhoto = pendingImage;
     
     setInput('');
@@ -226,9 +228,9 @@ export default function PetChatPage() {
     return (
       <div className="flex h-screen bg-black flex-col items-center justify-center p-4 text-center">
         <AlertCircle className="h-10 w-10 text-destructive mb-4" />
-        <h2 className="text-white font-bold mb-2">Pet não encontrado</h2>
-        <p className="text-white/60 text-sm mb-6 max-w-xs">Não conseguimos localizar os dados deste pet.</p>
-        <Button onClick={() => router.push('/')} variant="outline" className="rounded-full px-8">Voltar para Início</Button>
+        <h2 className="text-white font-bold mb-2">Animal não encontrado</h2>
+        <p className="text-white/60 text-sm mb-6 max-w-xs">Verifique se o pet ainda está cadastrado no sistema.</p>
+        <Button onClick={() => router.push('/')} variant="outline" className="rounded-full px-8 border-white/10 text-white">Voltar para o Início</Button>
       </div>
     );
   }
@@ -262,7 +264,7 @@ export default function PetChatPage() {
           </div>
           
           <div className="flex items-center gap-2">
-             <Button variant="ghost" size="icon" onClick={handleClearChat} className="text-white/30 hover:text-destructive h-8 w-8" disabled={isDeleting}>
+             <Button variant="ghost" size="icon" onClick={handleClearChat} className="text-white/30 hover:text-destructive h-8 w-8 transition-colors" disabled={isDeleting}>
                 {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
              </Button>
           </div>
@@ -270,7 +272,7 @@ export default function PetChatPage() {
 
         <div 
           ref={scrollRef}
-          className="flex-1 overflow-y-auto p-2 md:p-8 space-y-4 md:space-y-10 bg-black no-scrollbar overscroll-contain relative"
+          className="flex-1 overflow-y-auto p-4 md:p-8 space-y-4 md:space-y-10 bg-black no-scrollbar overscroll-contain relative"
         >
           <div className="fixed inset-0 flex items-center justify-center opacity-[0.02] pointer-events-none select-none z-0">
              <div className="flex flex-col items-center rotate-[-15deg]">
@@ -323,27 +325,27 @@ export default function PetChatPage() {
         {/* Input */}
         <div className="p-4 bg-transparent border-t border-white/5">
           {pendingImage && (
-            <div className="mb-2 p-2 bg-white/5 rounded-xl flex items-center gap-2 animate-in zoom-in-95">
+            <div className="mb-2 p-2 bg-white/5 rounded-xl flex items-center gap-2 animate-in zoom-in-95 border border-white/5">
               <div className="relative h-10 w-10 rounded-lg overflow-hidden border border-primary/50">
                 <Image src={pendingImage} alt="Preview" fill className="object-cover" />
               </div>
-              <p className="text-[10px] text-white/40 flex-1">Imagem pronta para envio</p>
+              <p className="text-[10px] text-white/40 flex-1 uppercase font-bold tracking-widest">Imagem selecionada</p>
               <Button size="icon" variant="ghost" onClick={() => setPendingImage(null)} className="h-6 w-6"><X className="h-3 w-3" /></Button>
             </div>
           )}
-          <form onSubmit={handleSendMessage} className="flex gap-2 items-center bg-white/[0.05] border border-white/10 p-1.5 rounded-full shadow-inner">
+          <form onSubmit={handleSendMessage} className="flex gap-2 items-center bg-white/[0.05] border border-white/10 p-1.5 rounded-full shadow-inner focus-within:border-primary/50 transition-all">
             <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
             <Button type="button" variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()} className="rounded-full text-white/40 hover:text-primary transition-colors h-9 w-9">
               <ImageIcon className="h-5 w-5" />
             </Button>
             <Input
-              placeholder="Diga algo à Vet IA..."
+              placeholder="Descreva o sintoma ou anexe uma foto..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
               disabled={isSending}
-              className="flex-1 bg-transparent border-none focus-visible:ring-0 text-white text-sm h-9"
+              className="flex-1 bg-transparent border-none focus-visible:ring-0 text-white text-sm h-9 placeholder:text-white/20"
             />
-            <Button type="submit" size="icon" disabled={isSending} className={cn("rounded-full bg-primary text-primary-foreground h-9 w-9 transition-all", (input || pendingImage) ? "scale-100 opacity-100" : "scale-90 opacity-40")}>
+            <Button type="submit" size="icon" disabled={isSending} className={cn("rounded-full bg-primary text-primary-foreground h-9 w-9 transition-all", (input.trim() || pendingImage) ? "scale-100 opacity-100 shadow-[0_0_10px_rgba(var(--primary),0.3)]" : "scale-90 opacity-40")}>
               <Send className="h-4 w-4" />
             </Button>
           </form>
