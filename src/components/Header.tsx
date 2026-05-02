@@ -43,10 +43,8 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/5 bg-background/80 backdrop-blur-xl">
       <div className="container mx-auto flex h-14 md:h-16 items-center justify-between px-4 relative">
-        {/* Espaçador Esquerdo para equilibrar o Flex (Oculto) */}
         <div className="flex-1 sm:flex-none sm:w-[120px]"></div>
 
-        {/* Logo Centralizado */}
         <Link 
           href="/" 
           className="absolute left-1/2 -translate-x-1/2 flex items-center space-x-2 transition-opacity hover:opacity-80 active:scale-95 duration-200 z-10"
@@ -57,7 +55,6 @@ export default function Header() {
           </span>
         </Link>
 
-        {/* Itens à Direita */}
         <div className="flex items-center gap-3 z-20">
           {authLoading ? (
             <div className="h-8 w-8 rounded-full bg-white/5 animate-pulse flex items-center justify-center">

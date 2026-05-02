@@ -228,10 +228,11 @@ export default function PetChatPage() {
 
   if (!pet) {
     return (
-      <div className="flex h-screen bg-black flex-col items-center justify-center p-4">
+      <div className="flex h-screen bg-black flex-col items-center justify-center p-4 text-center">
         <AlertCircle className="h-10 w-10 text-destructive mb-4" />
         <h2 className="text-white font-bold mb-2">Pet não encontrado</h2>
-        <Button onClick={() => router.push('/')} variant="outline">Voltar para Início</Button>
+        <p className="text-white/60 text-sm mb-6 max-w-xs">Não conseguimos localizar os dados deste pet. Verifique se ele ainda está cadastrado.</p>
+        <Button onClick={() => router.push('/')} variant="outline" className="rounded-full px-8">Voltar para Início</Button>
       </div>
     );
   }

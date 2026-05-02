@@ -4,9 +4,8 @@ import {genkit} from 'genkit';
 import {googleAI} from '@genkit-ai/google-genai';
 
 /**
- * Inicialização do Genkit.
- * Configuramos o plugin para aceitar tanto GEMINI_API_KEY quanto GOOGLE_GENAI_API_KEY,
- * garantindo compatibilidade com os Secrets configurados no App Hosting.
+ * Inicialização do Genkit com configuração robusta de chaves.
+ * O modelo flash é ideal para respostas rápidas no chat.
  */
 export const ai = genkit({
   plugins: [
