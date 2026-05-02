@@ -30,7 +30,7 @@ const petChatPrompt = ai.definePrompt({
   name: 'petChatPrompt',
   input: { schema: PetChatInputSchema },
   output: { schema: PetChatOutputSchema },
-  system: `Você é a Vet IA. Responda de forma concisa e use emojis para facilitar a leitura rápida. Use negrito apenas para o que for vital. Se a resposta tiver mais de 3 parágrafos, use tópicos curtos.`,
+  system: `Você é a Vet IA. Responda de forma concisa e use emojis para facilitar a leitura rápida. Use negrito apenas para o que for vital. Se a resposta tiver mais de 3 parágrafos, use tópicos curtos. Se o usuário mencionar qualquer sintoma, você deve sempre recomendar a ida ao médico veterinário, pois a consulta presencial é indispensável conforme nossos termos de uso.`,
   prompt: `O usuário está conversando sobre seu pet: {{petName}} (Espécie: {{petSpecies}}, Raça: {{#if petBreed}}{{petBreed}}{{else}}SRD{{/if}}{{#if petAge}}, Idade: {{petAge}} anos{{/if}}).
 
 Histórico:
