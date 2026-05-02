@@ -26,8 +26,6 @@ import {
   Bot, 
   User as UserIcon, 
   AlertCircle, 
-  Paperclip, 
-  Camera, 
   ImageIcon,
   X,
   Trash2
@@ -36,31 +34,7 @@ import { petChat } from '@/ai/flows/pet-chat-flow';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
-
-const PLAN_LIMITS: Record<string, number> = {
-  free: 6,
-  premium: 30,
-  pro: 999999,
-};
 
 const compressImage = (dataUrl: string, maxWidth = 1000, maxHeight = 1000, quality = 0.7): Promise<string> => {
   return new Promise((resolve) => {
@@ -92,9 +66,6 @@ const compressImage = (dataUrl: string, maxWidth = 1000, maxHeight = 1000, quali
   });
 };
 
-/**
- * Renderiza o texto da mensagem convertendo partes entre asteriscos em negrito.
- */
 const renderMessageText = (text: string) => {
   if (!text) return null;
   const parts = text.split(/(\*.*?\*)/g);
@@ -120,24 +91,10 @@ export default function PetChatPage() {
   const [isSending, setIsSending] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [pendingImage, setPendingImage] = useState<string | null>(null);
-  const [messageLimit, setMessageLimit] = useState(15);
+  const [messageLimit] = useState(15);
 
   const userRef = useMemo(() => (user && db ? doc(db, 'users', user.uid) : null), [user, db]);
   const { data: profile } = useDoc(userRef);
-
-  const userPlan = profile?.subscriptionPlan || 'free';
-  const dailyLimit = PLAN_LIMITS[userPlan] || 6;
-  const isPro = userPlan === 'pro';
-
-  const dailyUsage = useMemo(() => {
-    if (!profile?.dailyIAUsage) return 0;
-    const today = new Date().toISOString().split('T')[0];
-    if (profile.dailyIAUsage.date !== today) return 0;
-    return profile.dailyIAUsage.count || 0;
-  }, [profile]);
-
-  const messagesRemaining = Math.max(0, dailyLimit - dailyUsage);
-  const isLimitReached = !isPro && messagesRemaining <= 0;
 
   const threshold48h = useMemo(() => {
     return Timestamp.fromDate(new Date(Date.now() - 48 * 60 * 60 * 1000));
@@ -147,6 +104,7 @@ export default function PetChatPage() {
     if (!user || !db || !petId) return null;
     return doc(db, 'users', user.uid, 'pets', petId);
   }, [user, db, petId]);
+  
   const { data: pet, loading: petLoading } = useDoc(petRef);
 
   const messagesQuery = useMemo(() => {
@@ -216,10 +174,6 @@ export default function PetChatPage() {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isLimitReached) {
-      toast({ title: "Limite atingido", description: "Aumente seu plano para continuar conversando." });
-      return;
-    }
     if ((!input.trim() && !pendingImage) || !user || !pet || isSending) return;
 
     const userText = input || "Enviei uma foto para análise.";
@@ -238,13 +192,6 @@ export default function PetChatPage() {
         photoURL: currentPhoto,
         timestamp: serverTimestamp(),
       });
-
-      if (userRef) {
-        updateDoc(userRef, { 
-          'dailyIAUsage.date': new Date().toISOString().split('T')[0],
-          'dailyIAUsage.count': dailyUsage + 1 
-        });
-      }
 
       const response = await petChat({
         petName: pet.name,
@@ -321,9 +268,6 @@ export default function PetChatPage() {
           </div>
           
           <div className="flex items-center gap-2">
-             <Badge variant="secondary" className="bg-primary/10 text-primary border-none text-[9px] font-bold">
-                {isPro ? 'PRO ∞' : `${messagesRemaining}/${dailyLimit}`}
-             </Badge>
              <Button variant="ghost" size="icon" onClick={handleClearChat} className="text-white/30 hover:text-destructive h-8 w-8">
                 <Trash2 className="h-4 w-4" />
              </Button>
@@ -409,10 +353,10 @@ export default function PetChatPage() {
               placeholder="Diga algo à Vet IA..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              disabled={isSending || isLimitReached}
+              disabled={isSending}
               className="flex-1 bg-transparent border-none focus-visible:ring-0 text-white text-sm h-9"
             />
-            <Button type="submit" size="icon" disabled={isSending || isLimitReached} className={cn("rounded-full bg-primary text-primary-foreground h-9 w-9 transition-all", (input || pendingImage) ? "scale-100 opacity-100" : "scale-90 opacity-40")}>
+            <Button type="submit" size="icon" disabled={isSending} className={cn("rounded-full bg-primary text-primary-foreground h-9 w-9 transition-all", (input || pendingImage) ? "scale-100 opacity-100" : "scale-90 opacity-40")}>
               <Send className="h-4 w-4" />
             </Button>
           </form>
