@@ -278,6 +278,16 @@ export default function PetChatPage() {
     );
   }
 
+  if (!pet) {
+    return (
+      <div className="flex h-screen bg-black flex-col items-center justify-center p-4">
+        <AlertCircle className="h-10 w-10 text-destructive mb-4" />
+        <h2 className="text-white font-bold mb-2">Pet não encontrado</h2>
+        <Button onClick={() => router.push('/')} variant="outline">Voltar para Início</Button>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-screen h-[100dvh] bg-black overflow-hidden">
       <Header />
@@ -290,17 +300,17 @@ export default function PetChatPage() {
             </Button>
             <div className="flex items-center gap-1.5 md:gap-2.5 min-w-0">
               <Avatar className="h-7 w-7 md:h-9 md:w-9 border-2 border-primary/20 ring-2 ring-black shrink-0">
-                <AvatarImage src={pet.photoURL} alt={pet.name} className="object-cover" />
+                <AvatarImage src={pet?.photoURL} alt={pet?.name} className="object-cover" />
                 <AvatarFallback className="bg-muted">
                   <PawPrint className="h-4 w-4 md:h-5 md:w-5 text-primary" />
                 </AvatarFallback>
               </Avatar>
               <div className="flex flex-col min-w-0">
                 <div className="flex items-center gap-1 min-w-0">
-                  <h1 className="font-bold text-[10px] md:text-sm text-primary leading-tight truncate">{pet.name.toLowerCase()}</h1>
+                  <h1 className="font-bold text-[10px] md:text-sm text-primary leading-tight truncate">{(pet?.name || '').toLowerCase()}</h1>
                 </div>
                 <p className="text-[7px] md:text-[9px] text-white/40 uppercase font-bold tracking-[0.1em] truncate">
-                  {pet.species} • {pet.breed || 'SRD'} {pet.age ? `• ${pet.age} anos` : ''}
+                  {pet?.species} • {pet?.breed || 'SRD'} {pet?.age ? `• ${pet.age} anos` : ''}
                 </p>
                 <div className="flex items-center gap-1 opacity-40 mt-0.5">
                   <PawPrint className="h-1.5 w-1.5 text-primary" />
