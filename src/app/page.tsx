@@ -59,8 +59,6 @@ export default function Home() {
     }
   };
 
-  const userPlan = profile?.subscriptionPlan || 'free';
-
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Header />
@@ -72,21 +70,6 @@ export default function Home() {
               <Sparkles className="h-3 w-3 fill-current" />
               IA Preventiva de Saúde
             </div>
-            {user && !profileLoading && (
-              <div className="animate-in fade-in zoom-in duration-500">
-                {userPlan === 'pro' ? (
-                  <Badge className="bg-amber-500 text-white border-none px-4 py-1.5 rounded-full flex items-center gap-2 shadow-[0_0_20px_rgba(245,158,11,0.3)]">
-                    <Crown className="h-3 w-3 fill-current" />
-                    <span className="text-[10px] tracking-[0.2em] font-black uppercase">MEMBRO PRO</span>
-                  </Badge>
-                ) : userPlan === 'premium' ? (
-                  <Badge className="bg-primary text-primary-foreground border-none px-4 py-1.5 rounded-full flex items-center gap-2 shadow-[0_0_20px_rgba(var(--primary),0.3)]">
-                    <Sparkles className="h-3 w-3 fill-current" />
-                    <span className="text-[10px] tracking-[0.2em] font-black uppercase">MEMBRO PREMIUM</span>
-                  </Badge>
-                ) : null}
-              </div>
-            )}
           </div>
           
           <h1 className="font-headline text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-foreground px-2 leading-[1.2]">
