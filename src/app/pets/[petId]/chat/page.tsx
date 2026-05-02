@@ -95,6 +95,20 @@ const compressImage = (dataUrl: string, maxWidth = 1000, maxHeight = 1000, quali
   });
 };
 
+/**
+ * Renderiza o texto da mensagem convertendo partes entre asteriscos em negrito.
+ */
+const renderMessageText = (text: string) => {
+  if (!text) return null;
+  const parts = text.split(/(\*.*?\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('*') && part.endsWith('*')) {
+      return <strong key={i} className="font-bold">{part.slice(1, -1)}</strong>;
+    }
+    return part;
+  });
+};
+
 export default function PetChatPage() {
   const params = useParams();
   const router = useRouter();
@@ -422,7 +436,6 @@ export default function PetChatPage() {
           ref={scrollRef}
           className="flex-1 overflow-y-auto p-2 md:p-8 space-y-4 md:space-y-10 bg-black no-scrollbar overscroll-contain relative"
         >
-          {/* Marca d'água discreta de fundo para prints */}
           <div className="fixed inset-0 flex items-center justify-center opacity-[0.02] pointer-events-none select-none z-0">
              <div className="flex flex-col items-center rotate-[-15deg]">
                <PawPrint className="h-40 w-40 md:h-64 md:w-64 text-white" />
@@ -489,7 +502,7 @@ export default function PetChatPage() {
                     />
                   </div>
                 )}
-                <p className="whitespace-pre-wrap">{msg.text}</p>
+                <div className="whitespace-pre-wrap">{renderMessageText(msg.text)}</div>
               </div>
             </div>
           ))}
@@ -509,7 +522,6 @@ export default function PetChatPage() {
             </div>
           )}
 
-          {/* Selo discreto no final para prints de divulgação */}
           <div className="pt-8 pb-4 flex items-center justify-center opacity-20 relative z-10">
             <div className="flex items-center gap-2 border border-white/10 px-3 py-1.5 rounded-full">
               <PawPrint className="h-3 w-3 text-primary" />
